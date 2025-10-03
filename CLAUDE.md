@@ -436,6 +436,27 @@ Socket.io setup planned for:
   - Consistent experience with staff functionality
   - Maintains security with guest-only access to own invoices
 
+### Guest Chat UI Fixes (October 2025)
+- **Fixed chat layout scrolling issues** (`app/(guest)/guest/chat/page.tsx`)
+  - Problem: Entire chat component was scrolling instead of just the messages area
+  - Root cause: Chat container used `h-screen` inside guest layout with `min-h-screen`, creating nested scrolling
+  - Solution: Changed container to `fixed inset-0 bottom-20` positioning
+    - `fixed` removes from document flow, prevents parent scrolling
+    - `inset-0` makes it full viewport height
+    - `bottom-20` accounts for 80px bottom navigation bar
+  - Added `sticky top-0 z-10` to header for fixed positioning
+  - Added `sticky bottom-0 z-10` to input area for fixed positioning
+  - Removed `pb-24` from input (no longer needed with sticky positioning)
+- **Fixed chat badge display issue** (`components/guest/bottom-nav.tsx`)
+  - Problem: Chat icon showed "0" badge when user was actively viewing chat page
+  - Root cause: Badge logic only checked unread count, not active page state
+  - Solution: Changed badge visibility condition from `isChatIcon && unreadCount && unreadCount > 0` to `isChatIcon && !isActive && unreadCount && unreadCount > 0`
+  - Badge now properly hides when guest is on chat page
+- **Result**:
+  - Only the messages area scrolls, header and input stay fixed
+  - Chat badge correctly shows/hides based on active page
+  - Proper mobile chat UX with stationary controls
+
 ## Known Issues
 
 - NextAuth v5 is beta - may have edge cases
