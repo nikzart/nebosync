@@ -1,10 +1,14 @@
 'use client'
 
-import { Search, Bell } from 'lucide-react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { useQuery } from '@tanstack/react-query'
+import { Search, Bell, Clock, MessageSquare, Users } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 
 interface StaffHeaderProps {
   user: {
@@ -14,29 +18,98 @@ interface StaffHeaderProps {
   }
 }
 
+interface QuickStats {
+  pendingOrders: number
+  unreadMessages: number
+  activeGuests: number
+}
+
 export function StaffHeader({ user }: StaffHeaderProps) {
+  const pathname = usePathname()
+
+  const { data: stats } = useQuery<QuickStats>({
+    queryKey: ['header-quick-stats'],
+    queryFn: async () => {
+      const [ordersRes, messagesRes, guestsRes] = await Promise.all([
+        fetch('/api/orders?status=PENDING'),
+        fetch('/api/messages?unread=true'),
+        fetch('/api/guests?active=true'),
+      ])
+
+      const orders = await ordersRes.json()
+      const messages = await messagesRes.json()
+      const guests = await guestsRes.json()
+
+      return {
+        pendingOrders: orders.length,
+        unreadMessages: messages.length,
+        activeGuests: guests.length,
+      }
+    },
+    refetchInterval: 30000, // Refetch every 30 seconds
+  })
+
   return (
     <header className="sticky top-0 z-50 h-20 border-b border-border bg-card px-6 flex items-center justify-between">
-      {/* Navigation Pills */}
+      {/* Quick Stats Pills */}
       <div className="flex items-center gap-3">
-        <Button
-          variant="ghost"
-          className="rounded-full bg-secondary hover:bg-secondary/80 text-foreground px-6"
-        >
-          Check Box
-        </Button>
-        <Button
-          variant="ghost"
-          className="rounded-full hover:bg-secondary text-muted-foreground hover:text-foreground px-6"
-        >
-          Monitoring
-        </Button>
-        <Button
-          variant="ghost"
-          className="rounded-full hover:bg-secondary text-muted-foreground hover:text-foreground px-6"
-        >
-          Support
-        </Button>
+        <Link href="/staff/orders?status=PENDING">
+          <Button
+            variant="ghost"
+            className={cn(
+              'rounded-full hover:bg-secondary px-6 gap-2',
+              pathname === '/staff/orders'
+                ? 'bg-secondary text-foreground'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            <Clock className="w-4 h-4" />
+            <span>Pending Orders</span>
+            {stats && stats.pendingOrders > 0 && (
+              <Badge className="ml-1 bg-orange-500 hover:bg-orange-500 text-white h-5 min-w-5 flex items-center justify-center">
+                {stats.pendingOrders}
+              </Badge>
+            )}
+          </Button>
+        </Link>
+        <Link href="/staff/messages">
+          <Button
+            variant="ghost"
+            className={cn(
+              'rounded-full hover:bg-secondary px-6 gap-2',
+              pathname === '/staff/messages'
+                ? 'bg-secondary text-foreground'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            <MessageSquare className="w-4 h-4" />
+            <span>Messages</span>
+            {stats && stats.unreadMessages > 0 && (
+              <Badge className="ml-1 bg-blue-500 hover:bg-blue-500 text-white h-5 min-w-5 flex items-center justify-center">
+                {stats.unreadMessages}
+              </Badge>
+            )}
+          </Button>
+        </Link>
+        <Link href="/staff/guests">
+          <Button
+            variant="ghost"
+            className={cn(
+              'rounded-full hover:bg-secondary px-6 gap-2',
+              pathname === '/staff/guests'
+                ? 'bg-secondary text-foreground'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            <Users className="w-4 h-4" />
+            <span>Active Guests</span>
+            {stats && stats.activeGuests > 0 && (
+              <Badge className="ml-1 bg-green-500 hover:bg-green-500 text-white h-5 min-w-5 flex items-center justify-center">
+                {stats.activeGuests}
+              </Badge>
+            )}
+          </Button>
+        </Link>
       </div>
 
       {/* Right side */}

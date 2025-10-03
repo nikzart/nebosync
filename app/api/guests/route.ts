@@ -9,7 +9,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { searchParams } = new URL(request.url)
+    const active = searchParams.get('active')
+
+    const where = {
+      ...(active === 'true' && { isActive: true }),
+    }
+
     const guests = await prisma.guest.findMany({
+      where,
       include: {
         room: {
           select: {
