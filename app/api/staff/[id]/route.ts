@@ -1,0 +1,119 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@/auth'
+import { prisma } from '@/lib/prisma'
+import bcrypt from 'bcryptjs'
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await auth()
+    if (!session || session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { name, email, password, role, isActive } = body
+
+    // Check if staff exists
+    const existingStaff = await prisma.staff.findUnique({
+      where: { id: params.id },
+    })
+
+    if (!existingStaff) {
+      return NextResponse.json({ error: 'Staff not found' }, { status: 404 })
+    }
+
+    // Check if email is being changed and if it already exists
+    if (email && email !== existingStaff.email) {
+      const emailExists = await prisma.staff.findUnique({
+        where: { email },
+      })
+
+      if (emailExists) {
+        return NextResponse.json(
+          { error: 'Email already exists' },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Prepare update data
+    const updateData: any = {}
+    if (name) updateData.name = name
+    if (email) updateData.email = email
+    if (role) updateData.role = role
+    if (typeof isActive === 'boolean') updateData.isActive = isActive
+
+    // Hash password if provided
+    if (password) {
+      updateData.password = await bcrypt.hash(password, 10)
+    }
+
+    // Update staff
+    const staff = await prisma.staff.update({
+      where: { id: params.id },
+      data: updateData,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+      },
+    })
+
+    return NextResponse.json(staff)
+  } catch (error) {
+    console.error('Error updating staff:', error)
+    return NextResponse.json(
+      { error: 'Failed to update staff' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await auth()
+    if (!session || session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Check if staff exists
+    const staff = await prisma.staff.findUnique({
+      where: { id: params.id },
+    })
+
+    if (!staff) {
+      return NextResponse.json({ error: 'Staff not found' }, { status: 404 })
+    }
+
+    // Prevent deleting yourself
+    if (params.id === session.user.id) {
+      return NextResponse.json(
+        { error: 'Cannot delete your own account' },
+        { status: 400 }
+      )
+    }
+
+    // Soft delete by setting isActive to false instead of hard delete
+    await prisma.staff.update({
+      where: { id: params.id },
+      data: { isActive: false },
+    })
+
+    return NextResponse.json({ message: 'Staff deactivated successfully' })
+  } catch (error) {
+    console.error('Error deleting staff:', error)
+    return NextResponse.json(
+      { error: 'Failed to delete staff' },
+      { status: 500 }
+    )
+  }
+}
