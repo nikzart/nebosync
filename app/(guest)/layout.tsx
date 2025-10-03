@@ -16,7 +16,7 @@ export default async function GuestLayout({
 
   return (
     <CartProviderWrapper>
-      <div className="min-h-screen bg-soft-gray pb-20">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 pb-20">
         <main className="max-w-md mx-auto">
           {children}
         </main>

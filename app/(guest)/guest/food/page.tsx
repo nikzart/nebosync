@@ -62,14 +62,14 @@ export default function FoodMenuPage() {
         <div className="flex items-center gap-4 mb-5">
           <button
             onClick={() => router.back()}
-            className="w-12 h-12 rounded-2xl bg-gray-100/80 flex items-center justify-center hover:bg-gray-200 transition-all hover:scale-105"
+            className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center hover:bg-purple-200 transition-all hover:scale-105"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-5 h-5 text-purple-600" />
           </button>
           <h1 className="text-3xl font-bold text-gray-900 flex-1">Food Menu</h1>
           <button
             onClick={() => router.push('/guest/cart')}
-            className="relative w-12 h-12 rounded-2xl bg-lime-accent flex items-center justify-center hover:bg-lime-accent/90 transition-all hover:scale-105 shadow-md"
+            className="relative w-10 h-10 rounded-xl bg-lime-accent flex items-center justify-center hover:bg-lime-accent/90 transition-all hover:scale-105 shadow-md"
           >
             <ShoppingCart className="w-5 h-5" />
             {totalItems > 0 && (
@@ -82,13 +82,13 @@ export default function FoodMenuPage() {
 
         {/* Search */}
         <div className="relative mb-4">
-          <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <Input
             type="text"
             placeholder="Search food items..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-14 h-14 rounded-[1.5rem] bg-gray-50/80 border-none text-base shadow-sm"
+            className="pl-12 h-12 rounded-xl bg-gray-50 border-gray-200 text-base"
           />
         </div>
 
@@ -96,9 +96,9 @@ export default function FoodMenuPage() {
         <div className="flex gap-3 mb-4">
           <button
             onClick={() => setVegFilter('all')}
-            className={`flex-1 py-2.5 rounded-full text-sm font-semibold transition-all ${
+            className={`flex-1 py-2 rounded-full text-sm font-semibold transition-all ${
               vegFilter === 'all'
-                ? 'bg-pastel-purple text-white shadow-md scale-105'
+                ? 'bg-purple-500 text-white shadow-md'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
@@ -106,9 +106,9 @@ export default function FoodMenuPage() {
           </button>
           <button
             onClick={() => setVegFilter('veg')}
-            className={`flex-1 py-2.5 rounded-full text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+            className={`flex-1 py-2 rounded-full text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
               vegFilter === 'veg'
-                ? 'bg-green-500 text-white shadow-md scale-105'
+                ? 'bg-green-500 text-white shadow-md'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
@@ -117,9 +117,9 @@ export default function FoodMenuPage() {
           </button>
           <button
             onClick={() => setVegFilter('non-veg')}
-            className={`flex-1 py-2.5 rounded-full text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+            className={`flex-1 py-2 rounded-full text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
               vegFilter === 'non-veg'
-                ? 'bg-red-500 text-white shadow-md scale-105'
+                ? 'bg-red-500 text-white shadow-md'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
@@ -129,14 +129,14 @@ export default function FoodMenuPage() {
         </div>
 
         {/* Category Filter */}
-        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {categories.map((category) => (
             <button
               key={category}
               onClick={() => setCategoryFilter(category)}
-              className={`px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
+              className={`px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
                 categoryFilter === category
-                  ? 'bg-pastel-purple text-white shadow-md scale-105'
+                  ? 'bg-purple-500 text-white shadow-md'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -178,13 +178,13 @@ export default function FoodMenuPage() {
                 >
                   <div className="relative h-48">
                     <div
-                      className="absolute inset-0 bg-gradient-to-br from-pastel-purple to-pastel-lavender"
+                      className="absolute inset-0"
                       style={{
-                        ...(item.imageUrl && {
-                          backgroundImage: `url(${item.imageUrl})`,
-                          backgroundSize: 'cover',
-                          backgroundPosition: 'center',
-                        }),
+                        background: item.imageUrl
+                          ? `url(${item.imageUrl})`
+                          : 'linear-gradient(135deg, #c4b5fd 0%, #e0d7ff 100%)',
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
                       }}
                     />
                     <div className="absolute top-4 left-4 flex gap-2">
@@ -231,9 +231,9 @@ export default function FoodMenuPage() {
                             isVeg: item.isVeg,
                           })
                         }
-                        className="rounded-full bg-lime-accent hover:bg-lime-accent/90 text-black px-6 h-12"
+                        className="rounded-full bg-lime-accent hover:bg-lime-accent/90 text-black px-6 h-11 font-semibold"
                       >
-                        Add to Cart
+                        Add
                       </Button>
                     </div>
                   </div>
