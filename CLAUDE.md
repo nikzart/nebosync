@@ -393,6 +393,24 @@ Socket.io setup planned for:
   - Both staff and guest logout now properly redirect to login page
 - **Key pattern**: In Next.js 15 with NextAuth v5, always use `redirect: false` for auth operations called from client components, then handle navigation client-side with `router.push()`
 
+### Next.js 15 Async Params Fix (October 2025)
+- **Fixed all dynamic API route params warnings** for Next.js 15 compliance
+- **Root cause**: Next.js 15 requires `params` to be awaited before accessing properties in dynamic routes
+- **Fixed pattern** applied to all dynamic API routes:
+  - Changed `{ params }: { params: { id: string } }` to `{ params }: { params: Promise<{ id: string }> }`
+  - Added `const { id } = await params` after auth check
+  - Replaced all `params.id` with destructured `id` variable
+- **Files updated**:
+  - `app/api/wifi/[id]/route.ts` - PUT, DELETE methods
+  - `app/api/invoices/[id]/route.ts` - GET, PUT, PATCH methods
+  - `app/api/invoices/[id]/download/route.ts` - GET method (already fixed earlier)
+  - `app/api/orders/[id]/route.ts` - GET, PATCH, DELETE methods (already fixed earlier)
+  - `app/api/food-menu/[id]/route.ts` - GET, PUT, DELETE methods
+  - `app/api/staff/[id]/route.ts` - PUT, DELETE, PATCH methods
+  - `app/api/services/[id]/route.ts` - GET, PUT, DELETE methods
+- **Result**: All "Route used `params.id`. `params` should be awaited" warnings eliminated
+- **Best practice**: Always destructure params after awaiting in Next.js 15 dynamic routes
+
 ## Known Issues
 
 - NextAuth v5 is beta - may have edge cases

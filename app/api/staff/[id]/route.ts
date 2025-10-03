@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs'
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -13,12 +13,13 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const body = await request.json()
     const { name, email, password, role, isActive } = body
 
     // Check if staff exists
     const existingStaff = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!existingStaff) {
@@ -53,7 +54,7 @@ export async function PUT(
 
     // Update staff
     const staff = await prisma.user.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
       select: {
         id: true,
@@ -77,7 +78,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -85,9 +86,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
+
     // Check if staff exists
     const staff = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!staff) {
@@ -95,7 +98,7 @@ export async function DELETE(
     }
 
     // Prevent deleting yourself
-    if (params.id === session.user.id) {
+    if (id === session.user.id) {
       return NextResponse.json(
         { error: 'Cannot delete your own account' },
         { status: 400 }
@@ -104,7 +107,7 @@ export async function DELETE(
 
     // Hard delete
     await prisma.user.delete({
-      where: { id: params.id },
+      where: { id },
     })
 
     return NextResponse.json({ message: 'Staff deleted successfully' })
@@ -119,7 +122,7 @@ export async function DELETE(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -127,12 +130,13 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const body = await request.json()
     const { isActive } = body
 
     // Check if staff exists
     const staff = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!staff) {
@@ -140,7 +144,7 @@ export async function PATCH(
     }
 
     // Prevent deactivating yourself
-    if (params.id === session.user.id) {
+    if (id === session.user.id) {
       return NextResponse.json(
         { error: 'Cannot deactivate your own account' },
         { status: 400 }
@@ -149,7 +153,7 @@ export async function PATCH(
 
     // Toggle isActive status
     await prisma.user.update({
-      where: { id: params.id },
+      where: { id },
       data: { isActive: isActive ?? !staff.isActive },
     })
 
