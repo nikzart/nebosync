@@ -1,26 +1,97 @@
 @import "tailwindcss";
 
 :root {
+  /* Light Mode - Default (for Guest Interface) */
   --background: #ffffff;
   --foreground: #171717;
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --popover: #ffffff;
+  --popover-foreground: #171717;
+  --primary: #c4b5fd;
+  --primary-foreground: #1f1f1f;
+  --secondary: #f3f4f6;
+  --secondary-foreground: #1f1f1f;
+  --muted: #f3f4f6;
+  --muted-foreground: #6b7280;
+  --accent: #cdff57;
+  --accent-foreground: #1f1f1f;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #e5e7eb;
+  --input: #e5e7eb;
+  --ring: #c4b5fd;
+  --radius: 1rem;
+
+  /* Pastel colors for guest interface */
+  --pastel-purple: #c4b5fd;
+  --pastel-lavender: #e0d7ff;
+  --lime-accent: #cdff57;
+  --soft-gray: #f9fafb;
+}
+
+[data-theme="dark"] {
+  /* Dark Mode (for Admin/Staff Interface) */
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --card: #1a1a1a;
+  --card-foreground: #ededed;
+  --popover: #1a1a1a;
+  --popover-foreground: #ededed;
+  --primary: #a3ff57;
+  --primary-foreground: #0a0a0a;
+  --secondary: #2a2a2a;
+  --secondary-foreground: #ededed;
+  --muted: #2a2a2a;
+  --muted-foreground: #9ca3af;
+  --accent: #ff8844;
+  --accent-foreground: #0a0a0a;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #2a2a2a;
+  --input: #2a2a2a;
+  --ring: #a3ff57;
+
+  /* Dark theme specific colors */
+  --lime-green: #a3ff57;
+  --soft-orange: #ff8844;
+  --dark-card: #1a1a1a;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  @apply border-border;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  @apply bg-background text-foreground;
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* Smooth transitions for theme switching */
+* {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
