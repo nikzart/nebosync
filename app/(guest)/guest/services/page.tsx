@@ -51,22 +51,22 @@ export default function ServicesPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50">
       {/* Header */}
-      <header className="sticky top-0 bg-white/80 backdrop-blur-md z-10 px-6 py-4 border-b border-gray-100">
-        <div className="flex items-center gap-4 mb-4">
+      <header className="sticky top-0 bg-white/90 backdrop-blur-xl z-10 px-6 py-5 border-b border-gray-100/50 shadow-sm">
+        <div className="flex items-center gap-4 mb-5">
           <button
             onClick={() => router.back()}
-            className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+            className="w-12 h-12 rounded-2xl bg-gray-100/80 flex items-center justify-center hover:bg-gray-200 transition-all hover:scale-105"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-2xl font-semibold text-gray-900 flex-1">Services</h1>
+          <h1 className="text-3xl font-bold text-gray-900 flex-1">Services</h1>
           <button
             onClick={() => router.push('/guest/cart')}
-            className="relative w-10 h-10 rounded-full bg-lime-accent flex items-center justify-center hover:bg-lime-accent/90 transition-colors"
+            className="relative w-12 h-12 rounded-2xl bg-lime-accent flex items-center justify-center hover:bg-lime-accent/90 transition-all hover:scale-105 shadow-md"
           >
             <ShoppingCart className="w-5 h-5" />
             {totalItems > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
+              <span className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-md">
                 {totalItems}
               </span>
             )}
@@ -74,26 +74,26 @@ export default function ServicesPage() {
         </div>
 
         {/* Search */}
-        <div className="relative mb-3">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <div className="relative mb-4">
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <Input
             type="text"
             placeholder="Search services..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-12 h-12 rounded-full bg-gray-50 border-none"
+            className="pl-14 h-14 rounded-[1.5rem] bg-gray-50/80 border-none text-base shadow-sm"
           />
         </div>
 
         {/* Category Filter */}
-        <div className="flex gap-2 overflow-x-auto pb-2">
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {categories.map((category) => (
             <button
               key={category}
               onClick={() => setCategoryFilter(category)}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+              className={`px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
                 categoryFilter === category
-                  ? 'bg-pastel-purple text-white'
+                  ? 'bg-pastel-purple text-white shadow-md scale-105'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -131,36 +131,40 @@ export default function ServicesPage() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
-                  className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                  whileHover={{ scale: 1.02 }}
+                  className="bg-white rounded-[2rem] overflow-hidden hover:shadow-xl transition-all duration-300"
+                  style={{ boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}
                 >
                   <div className="relative h-48">
                     <div
-                      className="absolute inset-0 bg-gradient-to-br from-pastel-purple to-pastel-lavender"
+                      className="absolute inset-0 bg-gradient-to-br from-[#c4b5fd] to-[#e0d7ff]"
                       style={{
                         ...(service.imageUrl && {
-                          backgroundImage: `url(${service.imageUrl})`,
+                          backgroundImage: `linear-gradient(to bottom, rgba(196, 181, 253, 0.1), rgba(224, 215, 255, 0.3)), url(${service.imageUrl})`,
                           backgroundSize: 'cover',
                           backgroundPosition: 'center',
                         }),
                       }}
                     />
                     <div className="absolute top-4 left-4">
-                      <span className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium text-gray-700">
+                      <span className="px-4 py-1.5 bg-white/95 backdrop-blur-md rounded-full text-xs font-semibold text-gray-800 shadow-sm">
                         {service.category}
                       </span>
                     </div>
                   </div>
-                  <div className="p-5">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-1">
+                  <div className="p-6">
+                    <h4 className="text-xl font-bold text-gray-900 mb-2">
                       {service.name}
                     </h4>
-                    <p className="text-sm text-gray-500 mb-4 line-clamp-2">
+                    <p className="text-sm text-gray-600 mb-5 line-clamp-2 leading-relaxed">
                       {service.description || 'No description available'}
                     </p>
                     <div className="flex items-center justify-between">
-                      <span className="text-2xl font-bold text-gray-900">
-                        ₹{service.price.toLocaleString('en-IN')}
-                      </span>
+                      <div>
+                        <span className="text-3xl font-bold text-gray-900">
+                          ₹{service.price.toLocaleString('en-IN')}
+                        </span>
+                      </div>
                       <Button
                         size="sm"
                         onClick={() =>
@@ -174,7 +178,7 @@ export default function ServicesPage() {
                             description: service.description,
                           })
                         }
-                        className="rounded-full bg-lime-accent hover:bg-lime-accent/90 text-black px-6 h-12"
+                        className="rounded-full bg-lime-accent hover:bg-lime-accent/80 text-black px-6 h-12 font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
                       >
                         Add to Cart
                       </Button>

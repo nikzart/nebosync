@@ -58,22 +58,22 @@ export default function FoodMenuPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50">
       {/* Header */}
-      <header className="sticky top-0 bg-white/80 backdrop-blur-md z-10 px-6 py-4 border-b border-gray-100">
-        <div className="flex items-center gap-4 mb-4">
+      <header className="sticky top-0 bg-white/90 backdrop-blur-xl z-10 px-6 py-5 border-b border-gray-100/50 shadow-sm">
+        <div className="flex items-center gap-4 mb-5">
           <button
             onClick={() => router.back()}
-            className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+            className="w-12 h-12 rounded-2xl bg-gray-100/80 flex items-center justify-center hover:bg-gray-200 transition-all hover:scale-105"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-2xl font-semibold text-gray-900 flex-1">Food Menu</h1>
+          <h1 className="text-3xl font-bold text-gray-900 flex-1">Food Menu</h1>
           <button
             onClick={() => router.push('/guest/cart')}
-            className="relative w-10 h-10 rounded-full bg-lime-accent flex items-center justify-center hover:bg-lime-accent/90 transition-colors"
+            className="relative w-12 h-12 rounded-2xl bg-lime-accent flex items-center justify-center hover:bg-lime-accent/90 transition-all hover:scale-105 shadow-md"
           >
             <ShoppingCart className="w-5 h-5" />
             {totalItems > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
+              <span className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-md">
                 {totalItems}
               </span>
             )}
@@ -81,24 +81,24 @@ export default function FoodMenuPage() {
         </div>
 
         {/* Search */}
-        <div className="relative mb-3">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <div className="relative mb-4">
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <Input
             type="text"
             placeholder="Search food items..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-12 h-12 rounded-full bg-gray-50 border-none"
+            className="pl-14 h-14 rounded-[1.5rem] bg-gray-50/80 border-none text-base shadow-sm"
           />
         </div>
 
         {/* Veg/Non-Veg Filter */}
-        <div className="flex gap-2 mb-3">
+        <div className="flex gap-3 mb-4">
           <button
             onClick={() => setVegFilter('all')}
-            className={`flex-1 py-2 rounded-full text-sm font-medium transition-colors ${
+            className={`flex-1 py-2.5 rounded-full text-sm font-semibold transition-all ${
               vegFilter === 'all'
-                ? 'bg-pastel-purple text-white'
+                ? 'bg-pastel-purple text-white shadow-md scale-105'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
@@ -106,9 +106,9 @@ export default function FoodMenuPage() {
           </button>
           <button
             onClick={() => setVegFilter('veg')}
-            className={`flex-1 py-2 rounded-full text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+            className={`flex-1 py-2.5 rounded-full text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
               vegFilter === 'veg'
-                ? 'bg-green-500 text-white'
+                ? 'bg-green-500 text-white shadow-md scale-105'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
@@ -117,9 +117,9 @@ export default function FoodMenuPage() {
           </button>
           <button
             onClick={() => setVegFilter('non-veg')}
-            className={`flex-1 py-2 rounded-full text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+            className={`flex-1 py-2.5 rounded-full text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
               vegFilter === 'non-veg'
-                ? 'bg-red-500 text-white'
+                ? 'bg-red-500 text-white shadow-md scale-105'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
@@ -129,14 +129,14 @@ export default function FoodMenuPage() {
         </div>
 
         {/* Category Filter */}
-        <div className="flex gap-2 overflow-x-auto pb-2">
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {categories.map((category) => (
             <button
               key={category}
               onClick={() => setCategoryFilter(category)}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+              className={`px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
                 categoryFilter === category
-                  ? 'bg-pastel-purple text-white'
+                  ? 'bg-pastel-purple text-white shadow-md scale-105'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >

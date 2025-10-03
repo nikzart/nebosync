@@ -461,6 +461,59 @@ Socket.io setup planned for:
   - Chat badge correctly shows/hides based on active page
   - Proper mobile chat UX with stationary controls
 
+### Guest Interface Design Overhaul (October 2025)
+- **Comprehensive visual redesign** inspired by modern consumer app aesthetics
+- **Enhanced design system** (`app/globals.css`):
+  - Increased base border-radius from `1rem` to `1.5rem`
+  - Added gradient color variables (`--gradient-purple-start/end`, `--gradient-pink-start/end`)
+  - New shadow scale (`--shadow-sm/md/lg/xl`) for depth and elevation
+  - Extended border-radius scale (`--radius-sm` through `--radius-2xl`)
+- **Home page transformation** (`app/(guest)/guest/page.tsx`):
+  - Redesigned stats card with purple gradient background (`linear-gradient(135deg, #c4b5fd, #e0d7ff)`)
+  - Added decorative circular elements for visual interest
+  - Circular badge for active orders count
+  - Glassomorphism effect on room info card (`backdrop-blur-md`, `bg-white/25`)
+  - Increased heading sizes (4xl-5xl) for better hierarchy
+  - Enhanced "Today's Specials" grid with better shadows and veg indicators
+- **Service card component redesign** (`components/guest/service-card.tsx`):
+  - Increased border-radius to `2rem` for softer appearance
+  - Added `whileHover={{ scale: 1.02 }}` animation
+  - Enhanced shadows (`boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)'`)
+  - Gradient overlay on images for better text readability
+  - Improved category badge with backdrop blur
+  - Larger fonts (xl for titles, 3xl for prices)
+  - Enhanced CTA button (h-14 w-14 with shadow-lg)
+- **Services page improvements** (`app/(guest)/guest/services/page.tsx`):
+  - Enhanced header with better backdrop blur and shadows
+  - Larger, rounded buttons (w-12 h-12, rounded-2xl)
+  - Improved search bar (h-14, rounded-[1.5rem])
+  - Category pills with scale animation on active state
+  - Applied service card enhancements to all cards
+- **Food page enhancements** (`app/(guest)/guest/food/page.tsx`):
+  - Matching header design with services page
+  - Enhanced veg/non-veg filter buttons with shadow and scale effects
+  - Improved category pills for better visual feedback
+  - Consistent design language across all pages
+- **Orders page polish** (`app/(guest)/guest/orders/page.tsx`):
+  - Enhanced order cards with `rounded-[2rem]` and improved shadows
+  - Added `whileHover={{ scale: 1.01 }}` for subtle interaction
+  - Increased heading size to 4xl
+  - Better visual hierarchy and spacing
+- **Design principles applied**:
+  - Generous whitespace and breathing room
+  - Smooth transitions and micro-interactions
+  - Consistent use of gradients for visual interest
+  - Enhanced shadows for depth perception
+  - Rounded corners (24-32px) for modern, friendly feel
+  - Better typography scale with bold headings
+  - Hover effects on interactive elements
+- **Result**:
+  - More polished, consumer-grade appearance
+  - Better visual hierarchy throughout
+  - Enhanced user engagement through animations
+  - Consistent design language across all guest pages
+  - Modern aesthetic matching high-quality design references
+
 ## Known Issues
 
 - NextAuth v5 is beta - may have edge cases

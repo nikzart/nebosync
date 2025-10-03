@@ -21,13 +21,32 @@
   --border: #e5e7eb;
   --input: #e5e7eb;
   --ring: #c4b5fd;
-  --radius: 1rem;
+  --radius: 1.5rem;
 
   /* Pastel colors for guest interface */
   --pastel-purple: #c4b5fd;
   --pastel-lavender: #e0d7ff;
   --lime-accent: #cdff57;
   --soft-gray: #f9fafb;
+
+  /* Gradient colors */
+  --gradient-purple-start: #c4b5fd;
+  --gradient-purple-end: #e0d7ff;
+  --gradient-pink-start: #ff6b9d;
+  --gradient-pink-end: #ff8cb4;
+
+  /* Enhanced shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+  /* Border radius scale */
+  --radius-sm: 0.75rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+  --radius-xl: 2rem;
+  --radius-2xl: 2.5rem;
 }
 
 [data-theme="dark"] {

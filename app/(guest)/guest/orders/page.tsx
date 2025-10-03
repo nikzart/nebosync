@@ -126,10 +126,10 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 pb-24">
       <header className="px-6 pt-12 pb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Your Orders</h1>
-        <p className="text-gray-500 mt-1">Track and manage your orders</p>
+        <h1 className="text-4xl font-bold text-gray-900">Your Orders</h1>
+        <p className="text-gray-600 mt-2 text-base">Track and manage your orders</p>
       </header>
 
       <div className="px-6 pb-6">
@@ -154,7 +154,9 @@ export default function OrdersPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.05 }}
-                className="bg-white rounded-3xl p-6 shadow-sm"
+                whileHover={{ scale: 1.01 }}
+                className="bg-white rounded-[2rem] p-6 hover:shadow-xl transition-all duration-300"
+                style={{ boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div>
