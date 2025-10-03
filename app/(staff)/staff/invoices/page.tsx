@@ -68,14 +68,14 @@ export default function InvoicesPage() {
   })
 
   const downloadInvoiceMutation = useMutation({
-    mutationFn: async (invoiceId: string) => {
+    mutationFn: async ({ invoiceId, invoiceNumber }: { invoiceId: string; invoiceNumber: string }) => {
       const res = await fetch(`/api/invoices/${invoiceId}/download`)
       if (!res.ok) throw new Error('Failed to download invoice')
       const blob = await res.blob()
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `invoice-${invoiceId}.pdf`
+      a.download = `invoice-${invoiceNumber}.pdf`
       document.body.appendChild(a)
       a.click()
       window.URL.revokeObjectURL(url)
@@ -314,7 +314,10 @@ export default function InvoicesPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => downloadInvoiceMutation.mutate(invoice.id)}
+                          onClick={() => downloadInvoiceMutation.mutate({
+                            invoiceId: invoice.id,
+                            invoiceNumber: invoice.invoiceNumber
+                          })}
                           disabled={downloadInvoiceMutation.isPending}
                         >
                           <Download className="w-4 h-4 mr-1" />
