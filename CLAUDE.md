@@ -124,12 +124,13 @@ Import via `getQueryClient()` for app router compatibility.
 
 ## Theme System
 
-**Dual theme approach:**
+**Dual theme approach using next-themes:**
 - Light mode (default): Guest interface with pastel purple/lavender + lime accents
 - Dark mode: Staff interface with dark bg, lime-green and orange accents
-- Theme toggle via `ThemeProvider` in `components/theme-provider.tsx`
-- CSS variables in `app/globals.css` with `[data-theme="dark"]` selector
-- Staff layouts force dark theme via `data-theme="dark"` attribute
+- Theme switching via `next-themes` ThemeProvider in `components/providers.tsx`
+- CSS variables in `app/globals.css` with proper light/dark mode support
+- All components use CSS variables (`bg-card`, `text-foreground`, etc.) for theme consistency
+- Staff header is sticky with `sticky top-0 z-50` for persistent navigation
 
 ## Component Organization
 
@@ -205,6 +206,54 @@ Socket.io setup planned for:
 - Added all required pages to staff sidebar (Food Menu, Services, Guests, Invoices, Staff Management)
 - Implemented role-based visibility (Staff Management admin-only)
 - Guest profile now accessible via bottom navigation
+
+### Theme System Overhaul (October 2025)
+- **Replaced custom theme provider** with `next-themes` for proper light/dark mode switching
+- **Staff header improvements**:
+  - Removed all hardcoded dark colors (`bg-[#0a0a0a]`, `text-gray-400`, etc.)
+  - Now uses CSS variables (`bg-card`, `text-foreground`, `border-border`)
+  - Added sticky positioning (`sticky top-0 z-50`) - header stays fixed when scrolling
+  - Properly adapts to both light and dark themes
+- **Improved light mode readability**:
+  - Status badges (orders): increased opacity `/10` → `/20`, darker text colors for better contrast
+  - Available/Unavailable badges (food menu, services): stronger backgrounds with `font-medium`
+  - All status indicators now clearly readable in light mode
+
+### Food Menu & Services Management (October 2025)
+- **Added missing CRUD operations**:
+  - POST `/api/food-menu` - Create new food items
+  - PUT `/api/food-menu/[id]` - Update existing items
+  - DELETE `/api/food-menu/[id]` - Delete items
+  - POST `/api/services` - Create new services
+  - PUT `/api/services/[id]` - Update services
+  - DELETE `/api/services/[id]` - Delete services
+- All endpoints include staff/admin authorization checks
+
+### Staff Management Fixes (October 2025)
+- **Fixed React Hooks violation** - moved all hooks before conditional return to prevent "Rendered more hooks than during the previous render" error
+- **Corrected Prisma model usage** - changed `prisma.staff` to `prisma.user` throughout API routes
+- **Fixed relation name** - changed `messages` count to `assignedChats` count
+- **Separate deactivate vs delete**:
+  - PATCH `/api/staff/[id]` - Soft delete (toggle `isActive` status)
+  - DELETE `/api/staff/[id]` - Hard delete (permanent removal)
+  - UI now has two separate buttons for each action
+
+### WiFi Settings Management (October 2025)
+- **New API routes created**:
+  - GET/POST `/api/wifi` - List and create WiFi credentials
+  - PUT/DELETE `/api/wifi/[id]` - Update and delete credentials
+- **Settings page updated** with full CRUD interface:
+  - Fetch credentials from database instead of local state
+  - Create new WiFi networks with SSID, password, description
+  - Edit existing credentials inline
+  - Delete with confirmation
+  - Uses React Query for optimistic updates
+
+### Logout Functionality (October 2025)
+- **Added logout button** to staff sidebar (`components/staff/sidebar.tsx`)
+- Includes confirmation dialog before logout
+- Uses `signOut()` from NextAuth with redirect to `/login`
+- Toast notifications for success/error feedback
 
 ## Known Issues
 
