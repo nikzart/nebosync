@@ -9,7 +9,7 @@ export async function GET(
 ) {
   try {
     const session = await auth()
-    if (!session || session.user.role === 'GUEST') {
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -28,6 +28,11 @@ export async function GET(
 
     if (!invoice) {
       return NextResponse.json({ error: 'Invoice not found' }, { status: 404 })
+    }
+
+    // Guests can only download their own invoices
+    if (session.user.role === 'GUEST' && invoice.guestId !== session.user.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
     // Get hotel settings for PDF generation

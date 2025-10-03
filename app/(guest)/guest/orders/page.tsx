@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { Clock, CheckCircle, Package, XCircle } from 'lucide-react'
+import { Clock, CheckCircle, Package, XCircle, FileText, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 
@@ -21,6 +21,16 @@ interface OrderItem {
   } | null
 }
 
+interface InvoiceItem {
+  id: string
+  invoice: {
+    id: string
+    invoiceNumber: string
+    status: string
+    total: number
+  }
+}
+
 interface Order {
   id: string
   orderType: string
@@ -29,6 +39,7 @@ interface Order {
   notes: string | null
   createdAt: string
   orderItems: OrderItem[]
+  invoiceItems?: InvoiceItem[]
   guest: {
     name: string
     room: {
@@ -47,6 +58,26 @@ export default function OrdersPage() {
     },
     refetchInterval: 30000, // Refetch every 30 seconds
   })
+
+  // Helper function to get invoice from order
+  const getOrderInvoice = (order: Order) => {
+    if (!order.invoiceItems || order.invoiceItems.length === 0) {
+      return null
+    }
+    // Return the first invoice (orders typically have one invoice)
+    return order.invoiceItems[0].invoice
+  }
+
+  // Function to download invoice PDF
+  const downloadInvoice = (invoiceId: string, invoiceNumber: string) => {
+    const link = document.createElement('a')
+    link.href = `/api/invoices/${invoiceId}/download`
+    link.download = `invoice-${invoiceNumber}.pdf`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    toast.success('Downloading invoice...')
+  }
 
   const handleCancelOrder = async (orderId: string) => {
     try {
@@ -196,6 +227,30 @@ export default function OrdersPage() {
                     </Button>
                   </div>
                 )}
+
+                {/* Invoice section for completed orders */}
+                {order.status === 'COMPLETED' && (() => {
+                  const invoice = getOrderInvoice(order)
+                  return invoice ? (
+                    <div className="border-t border-gray-100 pt-4 mt-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-medium text-gray-600">Invoice Generated</span>
+                        <span className="text-xs px-2 py-1 rounded bg-green-500/20 text-green-700 font-medium">
+                          {invoice.invoiceNumber}
+                        </span>
+                      </div>
+                      <Button
+                        onClick={() => downloadInvoice(invoice.id, invoice.invoiceNumber)}
+                        className="w-full bg-pastel-purple hover:bg-pastel-purple/90 gap-2"
+                        size="sm"
+                      >
+                        <FileText className="w-4 h-4" />
+                        <Download className="w-4 h-4" />
+                        Download Invoice PDF
+                      </Button>
+                    </div>
+                  ) : null
+                })()}
               </motion.div>
             ))}
           </div>
