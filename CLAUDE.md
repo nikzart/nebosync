@@ -378,6 +378,21 @@ Socket.io setup planned for:
   4. Staff clicks "Download Invoice PDF" button
   5. Professional PDF downloads with hotel branding
 
+### Authentication Fixes - Login & Logout (October 2025)
+- **Fixed login redirect issue** (`app/login/actions.ts`, `app/login/page.tsx`)
+  - Problem: Login showed success toast but didn't redirect users to dashboard
+  - Root cause: NextAuth v5's `signIn()` with `redirectTo` parameter throws redirect error when called from server actions via `startTransition()`
+  - Solution: Added `redirect: false` to `signIn()` calls + client-side `router.push()` navigation
+  - Staff login returns `{ success: true, redirectTo: '/staff' }` on success
+  - Guest login returns `{ success: true, redirectTo: '/guest' }` on success
+  - Login page uses `useRouter().push()` for client-side navigation after successful authentication
+- **Fixed logout redirect issue** (`components/staff/sidebar.tsx`, `components/guest/profile-actions.tsx`)
+  - Problem: Logout cleared session but didn't redirect to login page
+  - Root cause: Same as login - `signOut()` with `redirect: true` doesn't work properly in Next.js 15
+  - Solution: Changed to `signOut({ redirect: false })` + `router.push('/login')`
+  - Both staff and guest logout now properly redirect to login page
+- **Key pattern**: In Next.js 15 with NextAuth v5, always use `redirect: false` for auth operations called from client components, then handle navigation client-side with `router.push()`
+
 ## Known Issues
 
 - NextAuth v5 is beta - may have edge cases

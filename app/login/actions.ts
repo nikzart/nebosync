@@ -8,6 +8,7 @@ export async function staffLogin(email: string, password: string) {
     await signIn('staff-login', {
       email,
       password,
+      redirect: false,
     })
     return { success: true, redirectTo: '/staff' }
   } catch (error) {
@@ -28,6 +29,7 @@ export async function guestLogin(phone: string, roomNumber: string) {
     await signIn('guest-login', {
       phone,
       roomNumber,
+      redirect: false,
     })
     return { success: true, redirectTo: '/guest' }
   } catch (error) {

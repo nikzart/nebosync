@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import {
   LayoutDashboard,
@@ -39,6 +39,7 @@ const navigation: NavigationItem[] = [
 
 export function StaffSidebar() {
   const pathname = usePathname()
+  const router = useRouter()
   const { data: session } = useSession()
 
   // Filter navigation based on user role
@@ -52,8 +53,9 @@ export function StaffSidebar() {
   const handleLogout = async () => {
     if (confirm('Are you sure you want to logout?')) {
       try {
-        await signOut({ callbackUrl: '/login', redirect: true })
+        await signOut({ redirect: false })
         toast.success('Logged out successfully')
+        router.push('/login')
       } catch (error) {
         toast.error('Failed to logout')
       }
