@@ -118,9 +118,9 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 flex flex-col">
+    <div className="fixed inset-0 bottom-20 bg-gradient-to-br from-purple-50 via-white to-purple-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md px-6 py-4 border-b border-gray-100">
+      <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md px-6 py-4 border-b border-gray-100">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-gray-900">Chat with Staff</h1>
@@ -191,7 +191,7 @@ export default function ChatPage() {
       </div>
 
       {/* Input */}
-      <div className="bg-white border-t border-gray-200 px-6 py-4 pb-24">
+      <div className="sticky bottom-0 z-10 bg-white border-t border-gray-200 px-6 py-4">
         <form onSubmit={handleSendMessage} className="flex gap-3">
           <div className="flex gap-2">
             <button
