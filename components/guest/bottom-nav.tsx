@@ -36,7 +36,7 @@ export function GuestBottomNav() {
         {navigation.map((item) => {
           const isActive = pathname === item.href
           const isChatIcon = item.name === 'Chat'
-          const showBadge = isChatIcon && !isActive && unreadCount && unreadCount > 0
+          const showBadge = isChatIcon && !isActive && typeof unreadCount === 'number' && unreadCount > 0
 
           return (
             <Link

@@ -448,10 +448,14 @@ Socket.io setup planned for:
   - Added `sticky bottom-0 z-10` to input area for fixed positioning
   - Removed `pb-24` from input (no longer needed with sticky positioning)
 - **Fixed chat badge display issue** (`components/guest/bottom-nav.tsx`)
-  - Problem: Chat icon showed "0" badge when user was actively viewing chat page
-  - Root cause: Badge logic only checked unread count, not active page state
-  - Solution: Changed badge visibility condition from `isChatIcon && unreadCount && unreadCount > 0` to `isChatIcon && !isActive && unreadCount && unreadCount > 0`
-  - Badge now properly hides when guest is on chat page
+  - Problem: Chat icon showed "0" badge when user was actively viewing chat page, and badge appeared before data loaded
+  - Root cause 1: Badge logic didn't check if user was on active page
+  - Root cause 2: Badge rendered when `unreadCount` was `undefined` (before query completed)
+  - Solution: Enhanced badge visibility condition to `isChatIcon && !isActive && typeof unreadCount === 'number' && unreadCount > 0`
+    - Added `!isActive` check to hide badge on chat page
+    - Added `typeof unreadCount === 'number'` to prevent rendering before data loads
+    - Kept `unreadCount > 0` to only show badge when there are actual unread messages
+  - Badge now properly hides when guest is on chat page and doesn't show "0"
 - **Result**:
   - Only the messages area scrolls, header and input stay fixed
   - Chat badge correctly shows/hides based on active page
