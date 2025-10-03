@@ -2,14 +2,15 @@
 
 import { signIn } from '@/auth'
 import { AuthError } from 'next-auth'
+import { redirect } from 'next/navigation'
 
 export async function staffLogin(email: string, password: string) {
   try {
     await signIn('staff-login', {
       email,
       password,
-      redirectTo: '/staff',
     })
+    redirect('/staff')
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {
@@ -28,8 +29,8 @@ export async function guestLogin(phone: string, roomNumber: string) {
     await signIn('guest-login', {
       phone,
       roomNumber,
-      redirectTo: '/guest',
     })
+    redirect('/guest')
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {
