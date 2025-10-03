@@ -84,6 +84,7 @@ export default function StaffOrdersPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['header-quick-stats'] })
       toast.success('Order updated successfully')
     },
     onError: () => {

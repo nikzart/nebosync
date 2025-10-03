@@ -30,7 +30,7 @@ export default function CheckoutPage() {
         const hasService = items.some((item) => item.type === 'SERVICE')
         let orderType = 'FOOD'
         if (hasService && !hasFood) {
-          orderType = 'SERVICE'
+          orderType = 'ROOM_SERVICE'
         } else if (hasFood && hasService) {
           orderType = 'FOOD'
         }

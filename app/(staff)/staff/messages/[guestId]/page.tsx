@@ -4,7 +4,7 @@ import { use, useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Send } from 'lucide-react'
+import { ArrowLeft, Send, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -53,6 +53,34 @@ export default function StaffChatPage({ params }: { params: Promise<{ guestId: s
     refetchOnReconnect: true,
   })
 
+  // Mark messages as read when there are unread messages from guest
+  useEffect(() => {
+    if (!messages || messages.length === 0) return
+
+    // Check if there are any unread messages from the guest
+    const hasUnreadFromGuest = messages.some(m => !m.isRead && m.isFromGuest)
+
+    if (hasUnreadFromGuest) {
+      // Mark them as read
+      const markAsRead = async () => {
+        try {
+          await fetch('/api/messages', {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ guestId }),
+          })
+          // Invalidate header stats to update unread count immediately
+          queryClient.invalidateQueries({ queryKey: ['header-quick-stats'] })
+        } catch (error) {
+          console.error('Failed to mark messages as read:', error)
+        }
+      }
+      markAsRead()
+    }
+  }, [messages, guestId, queryClient])
+
   const { data: guest } = useQuery({
     queryKey: ['guest', guestId],
     queryFn: async () => {
@@ -91,6 +119,28 @@ export default function StaffChatPage({ params }: { params: Promise<{ guestId: s
     },
   })
 
+  const clearChatMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch('/api/messages', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ guestId }),
+      })
+      if (!res.ok) throw new Error('Failed to clear chat')
+      return res.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff-chat-messages', guestId] })
+      queryClient.invalidateQueries({ queryKey: ['header-quick-stats'] })
+      toast.success('Chat cleared successfully')
+    },
+    onError: () => {
+      toast.error('Failed to clear chat')
+    },
+  })
+
   // Auto scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -103,6 +153,12 @@ export default function StaffChatPage({ params }: { params: Promise<{ guestId: s
     const messageToSend = message
     setMessage('')
     await sendMessageMutation.mutateAsync(messageToSend)
+  }
+
+  const handleClearChat = async () => {
+    if (confirm('Are you sure you want to clear all messages in this chat? This action cannot be undone.')) {
+      await clearChatMutation.mutateAsync()
+    }
   }
 
   return (
@@ -122,6 +178,17 @@ export default function StaffChatPage({ params }: { params: Promise<{ guestId: s
               {guest?.room ? `Room ${guest.room.roomNumber}` : guest?.phone}
             </p>
           </div>
+          {/* Clear Chat button - Admin only */}
+          {session?.user?.role === 'ADMIN' && (
+            <button
+              onClick={handleClearChat}
+              disabled={clearChatMutation.isPending}
+              className="w-10 h-10 rounded-full bg-red-500/10 hover:bg-red-500/20 flex items-center justify-center transition-colors disabled:opacity-50"
+              title="Clear Chat (Admin Only)"
+            >
+              <Trash2 className="w-5 h-5 text-red-500" />
+            </button>
+          )}
         </div>
       </header>
 
