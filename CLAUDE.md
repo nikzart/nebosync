@@ -319,6 +319,65 @@ Socket.io setup planned for:
   - Updates badge counts immediately
 - Location: Staff chat page header with confirmation prompt
 
+### Hotel Settings & Tax Configuration (October 2025)
+- **Added HotelSettings Prisma model** (`prisma/schema.prisma`)
+  - Hotel information (name, address, phone, email, website)
+  - Tax configuration (rate, label, registration number)
+  - Invoice settings (prefix, footer)
+  - Banking details (bank name, account number, IFSC code, account name)
+  - Singleton pattern with auto-creation of default settings
+- **Created API routes**:
+  - GET `/api/settings/hotel` - Fetch hotel settings (auto-creates if missing)
+  - PUT `/api/settings/hotel` - Update settings (admin-only, uses upsert)
+- **Updated Settings page** (`app/(staff)/staff/settings/page.tsx`)
+  - New "Billing & Tax" tab (6th tab)
+  - Tax rate input (percentage, stored as decimal)
+  - Tax registration number (GSTIN)
+  - Invoice customization (prefix format, footer message)
+  - Banking details form for payment instructions
+  - All data persisted to database instead of local state
+- **Migration**: `20251003144243_add_hotel_settings`
+
+### Auto Invoice Generation with PDF (October 2025)
+- **Auto-generation on order completion** (`app/api/orders/[id]/route.ts:93-101`)
+  - Automatically creates invoice when order status changes to COMPLETED
+  - Uses dynamic tax rate from hotel settings
+  - Error handling prevents order update failure if invoice generation fails
+  - Prevents duplicate invoices by checking existing InvoiceItems
+- **Updated invoice generation logic** (`lib/invoice.ts`)
+  - Fetches hotel settings for tax rate and invoice prefix
+  - Generates unique invoice numbers: `{PREFIX}-{YYYYMMDD}-{XXXX}`
+  - Calculates subtotal, tax, and total using dynamic tax rate
+  - Creates invoice with line items from order
+- **Professional PDF invoice design** (`lib/invoice-pdf.tsx`)
+  - Uses `@react-pdf/renderer` (v4.3.1) for PDF generation
+  - Green-themed professional design (#4CAF50, #2E7D32)
+  - Large hotel name header (32pt, bold, green with letterSpacing)
+  - Two-column layout for invoice details and guest information
+  - Professional table with green header and white text
+  - Alternating row colors (#FFFFFF, #F5F5F5)
+  - Payment status badges (yellow for PENDING, green for PAID)
+  - Bank details section with left green border
+  - Professional footer with disclaimers
+- **PDF download endpoint** (`app/api/invoices/[id]/download/route.ts`)
+  - Fetches invoice with guest and room details
+  - Fetches hotel settings for dynamic content
+  - Generates PDF buffer using `renderToBuffer()`
+  - Returns PDF with proper Content-Type: application/pdf
+  - Download filename: `invoice-{invoiceNumber}.pdf`
+- **Staff orders page enhancements** (`app/(staff)/staff/orders/page.tsx`)
+  - Shows "Invoice Generated" badge with invoice number for COMPLETED orders
+  - Green "Download Invoice PDF" button (FileText + Download icons)
+  - Displays fallback message if invoice not yet generated
+  - Invoice data included in orders query via `invoiceItems` relation
+  - Helper function `getOrderInvoice()` to extract invoice from order
+- **Complete invoice flow**:
+  1. Staff marks order as COMPLETED
+  2. System auto-generates invoice with hotel settings
+  3. Invoice appears in order card with invoice number
+  4. Staff clicks "Download Invoice PDF" button
+  5. Professional PDF downloads with hotel branding
+
 ## Known Issues
 
 - NextAuth v5 is beta - may have edge cases

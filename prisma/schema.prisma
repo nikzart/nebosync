@@ -281,3 +281,36 @@ model WiFiCredential {
 
   @@map("wifi_credentials")
 }
+
+// Hotel settings and configuration (single record)
+model HotelSettings {
+  id                String   @id @default(cuid())
+
+  // Hotel Information
+  hotelName         String   @default("NeboSync Hotel")
+  address           String   @default("")
+  phone             String   @default("")
+  email             String   @default("")
+  website           String   @default("")
+  logoUrl           String?
+
+  // Tax Configuration
+  taxRate           Float    @default(0.18) // Default 18% GST
+  taxLabel          String   @default("GST")
+  taxRegistration   String?  // GSTIN number
+
+  // Invoice Settings
+  invoicePrefix     String   @default("INV")
+  invoiceFooter     String   @default("Thank you for choosing our hotel!")
+
+  // Banking Details
+  bankName          String?
+  accountNumber     String?
+  ifscCode          String?
+  accountName       String?
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("hotel_settings")
+}

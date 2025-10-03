@@ -206,6 +206,30 @@ async function main() {
   })
   console.log('✅ WiFi credentials created:', wifi.ssid)
 
+  // Create hotel settings
+  const hotelSettings = await prisma.hotelSettings.upsert({
+    where: { id: 'default' }, // Use a fixed ID for singleton
+    update: {},
+    create: {
+      id: 'default',
+      hotelName: 'NeboSync Hotel',
+      address: '123 Hotel Street, Mumbai, Maharashtra 400001',
+      phone: '+91 22 1234 5678',
+      email: 'contact@nebosync.hotel',
+      website: 'https://nebosync.hotel',
+      taxRate: 0.18, // 18% GST
+      taxLabel: 'GST',
+      taxRegistration: '27AABCU9603R1ZM', // Sample GSTIN
+      invoicePrefix: 'INV',
+      invoiceFooter: 'Thank you for choosing NeboSync Hotel! We look forward to serving you again.',
+      bankName: 'HDFC Bank',
+      accountName: 'NeboSync Hotels Pvt Ltd',
+      accountNumber: '50200012345678',
+      ifscCode: 'HDFC0001234',
+    },
+  })
+  console.log('✅ Hotel settings created:', hotelSettings.hotelName)
+
   console.log('🎉 Database seeding completed!')
   console.log('\n📝 Login Credentials:')
   console.log('Admin: admin@nebosync.com / admin123')

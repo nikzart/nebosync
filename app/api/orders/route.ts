@@ -35,6 +35,11 @@ export async function GET(request: NextRequest) {
             room: true,
           },
         },
+        invoiceItems: {
+          include: {
+            invoice: true,
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
     })

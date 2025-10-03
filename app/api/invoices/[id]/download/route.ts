@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
+import { generateInvoicePDF } from '@/lib/invoice-pdf'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -12,24 +13,16 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const invoice = await prisma.invoice.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
-        guest: true,
-        invoiceItems: {
+        guest: {
           include: {
-            order: {
-              include: {
-                orderItems: {
-                  include: {
-                    service: true,
-                    foodMenu: true,
-                  },
-                },
-              },
-            },
+            room: true,
           },
         },
+        invoiceItems: true,
       },
     })
 
@@ -37,70 +30,69 @@ export async function GET(
       return NextResponse.json({ error: 'Invoice not found' }, { status: 404 })
     }
 
-    // Generate a simple text-based invoice for now
-    // In production, you would use @react-pdf/renderer or similar
-    const invoiceText = `
-═══════════════════════════════════════════════════
-              NEBOSYNC HOTEL INVOICE
-═══════════════════════════════════════════════════
+    // Get hotel settings for PDF generation
+    const hotelSettings = await prisma.hotelSettings.findFirst()
 
-Invoice Number: ${invoice.invoiceNumber}
-Created Date: ${new Date(invoice.createdAt).toLocaleDateString()}
-Status: ${invoice.status}
+    // Prepare invoice data for PDF
+    const invoiceData = {
+      invoiceNumber: invoice.invoiceNumber,
+      createdAt: invoice.createdAt.toISOString(),
+      status: invoice.status,
+      subtotal: invoice.subtotal,
+      tax: invoice.tax,
+      total: invoice.total,
+      paidAt: invoice.paidAt?.toISOString() || null,
+      guest: {
+        name: invoice.guest.name,
+        phone: invoice.guest.phone,
+        email: invoice.guest.email,
+        room: invoice.guest.room
+          ? {
+              roomNumber: invoice.guest.room.roomNumber,
+            }
+          : null,
+      },
+      invoiceItems: invoice.invoiceItems.map((item) => ({
+        description: item.description,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        total: item.total,
+      })),
+    }
 
-───────────────────────────────────────────────────
-GUEST INFORMATION
-───────────────────────────────────────────────────
-Name: ${invoice.guest.name}
-Phone: ${invoice.guest.phone}
-${invoice.guest.email ? `Email: ${invoice.guest.email}` : ''}
+    // Prepare hotel settings for PDF
+    const hotelSettingsData = hotelSettings
+      ? {
+          hotelName: hotelSettings.hotelName,
+          address: hotelSettings.address,
+          phone: hotelSettings.phone,
+          email: hotelSettings.email,
+          website: hotelSettings.website,
+          taxRate: hotelSettings.taxRate,
+          taxLabel: hotelSettings.taxLabel,
+          taxRegistration: hotelSettings.taxRegistration,
+          invoiceFooter: hotelSettings.invoiceFooter,
+          bankName: hotelSettings.bankName,
+          accountNumber: hotelSettings.accountNumber,
+          ifscCode: hotelSettings.ifscCode,
+          accountName: hotelSettings.accountName,
+        }
+      : undefined
 
-───────────────────────────────────────────────────
-INVOICE ITEMS
-───────────────────────────────────────────────────
-${invoice.invoiceItems
-  .map((item) => {
-    const orderDetails = item.order
-      ? `\n    Order Items:\n${item.order.orderItems
-          .map((orderItem) => {
-            const itemName = orderItem.service?.name || orderItem.foodMenu?.name || 'Unknown'
-            return `      - ${itemName} (Qty: ${orderItem.quantity}) - ₹${orderItem.subtotal.toLocaleString('en-IN')}`
-          })
-          .join('\n')}`
-      : ''
-    return `  • ${item.description}
-    Quantity: ${item.quantity}
-    Unit Price: ₹${item.unitPrice.toLocaleString('en-IN')}
-    Total: ₹${item.total.toLocaleString('en-IN')}${orderDetails}`
-  })
-  .join('\n\n')}
+    // Generate PDF
+    const pdfBuffer = await generateInvoicePDF(invoiceData, hotelSettingsData)
 
-───────────────────────────────────────────────────
-PAYMENT SUMMARY
-───────────────────────────────────────────────────
-Subtotal:        ₹${invoice.subtotal.toLocaleString('en-IN')}
-Tax (18%):       ₹${invoice.tax.toLocaleString('en-IN')}
-═══════════════════════════════════════════════════
-Total Amount:    ₹${invoice.total.toLocaleString('en-IN')}
-═══════════════════════════════════════════════════
-
-${invoice.paidAt ? `Paid on: ${new Date(invoice.paidAt).toLocaleDateString()}` : 'Payment Pending'}
-
-Thank you for choosing NeboSync Hotel!
-═══════════════════════════════════════════════════
-    `.trim()
-
-    // Return as downloadable text file
-    return new NextResponse(invoiceText, {
+    // Return PDF as download
+    return new NextResponse(pdfBuffer, {
       headers: {
-        'Content-Type': 'text/plain',
-        'Content-Disposition': `attachment; filename="invoice-${invoice.invoiceNumber}.txt"`,
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="invoice-${invoice.invoiceNumber}.pdf"`,
       },
     })
   } catch (error) {
-    console.error('Error generating invoice:', error)
+    console.error('Error generating invoice PDF:', error)
     return NextResponse.json(
-      { error: 'Failed to generate invoice' },
+      { error: 'Failed to generate invoice PDF' },
       { status: 500 }
     )
   }

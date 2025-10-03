@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
+import { generateInvoiceForOrder } from '@/lib/invoice'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -12,8 +13,9 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const order = await prisma.order.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         orderItems: {
           include: {
@@ -50,7 +52,7 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -66,8 +68,9 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
+    const { id } = await params
     const order = await prisma.order.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         status,
       },
@@ -86,6 +89,17 @@ export async function PATCH(
       },
     })
 
+    // Auto-generate invoice when order is completed
+    if (status === 'COMPLETED') {
+      try {
+        const invoice = await generateInvoiceForOrder(id)
+        console.log('✅ Auto-generated invoice:', invoice.invoiceNumber)
+      } catch (invoiceError) {
+        console.error('Failed to auto-generate invoice:', invoiceError)
+        // Don't fail the order update if invoice generation fails
+      }
+    }
+
     return NextResponse.json(order)
   } catch (error) {
     console.error('Error updating order:', error)
@@ -98,7 +112,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -106,8 +120,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const order = await prisma.order.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!order) {
@@ -128,7 +143,7 @@ export async function DELETE(
     }
 
     await prisma.order.update({
-      where: { id: params.id },
+      where: { id },
       data: { status: 'CANCELLED' },
     })
 
