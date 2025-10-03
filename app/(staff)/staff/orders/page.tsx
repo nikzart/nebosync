@@ -9,6 +9,8 @@ import {
   Package,
   XCircle,
   ChevronRight,
+  FileText,
+  Download,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -35,6 +37,16 @@ interface OrderItem {
   } | null
 }
 
+interface InvoiceItem {
+  id: string
+  invoice: {
+    id: string
+    invoiceNumber: string
+    status: string
+    total: number
+  }
+}
+
 interface Order {
   id: string
   orderType: string
@@ -43,6 +55,7 @@ interface Order {
   notes: string | null
   createdAt: string
   orderItems: OrderItem[]
+  invoiceItems?: InvoiceItem[]
   guest: {
     name: string
     phone: string
@@ -55,6 +68,26 @@ interface Order {
 export default function StaffOrdersPage() {
   const queryClient = useQueryClient()
   const [statusFilter, setStatusFilter] = useState<string>('all')
+
+  // Helper function to get invoice from order
+  const getOrderInvoice = (order: Order) => {
+    if (!order.invoiceItems || order.invoiceItems.length === 0) {
+      return null
+    }
+    // Return the first invoice (orders typically have one invoice)
+    return order.invoiceItems[0].invoice
+  }
+
+  // Function to download invoice PDF
+  const downloadInvoice = (invoiceId: string, invoiceNumber: string) => {
+    const link = document.createElement('a')
+    link.href = `/api/invoices/${invoiceId}/download`
+    link.download = `invoice-${invoiceNumber}.pdf`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    toast.success('Downloading invoice...')
+  }
 
   const { data: orders, isLoading } = useQuery<Order[]>({
     queryKey: ['staff-orders', statusFilter],
@@ -244,7 +277,39 @@ export default function StaffOrdersPage() {
               )}
 
               {/* Actions */}
-              {order.status !== 'COMPLETED' && order.status !== 'CANCELLED' && (
+              {order.status === 'COMPLETED' ? (
+                // Show invoice button for completed orders
+                (() => {
+                  const invoice = getOrderInvoice(order)
+                  return invoice ? (
+                    <div className="border-t pt-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-green-600" />
+                          <span className="text-xs font-medium text-muted-foreground">
+                            Invoice Generated
+                          </span>
+                        </div>
+                        <span className="text-xs px-2 py-1 rounded bg-green-500/20 text-green-700 dark:text-green-400 font-medium">
+                          {invoice.invoiceNumber}
+                        </span>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => downloadInvoice(invoice.id, invoice.invoiceNumber)}
+                        className="w-full bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Download Invoice PDF
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="border-t pt-4 text-center text-xs text-muted-foreground">
+                      Invoice will be generated automatically
+                    </div>
+                  )
+                })()
+              ) : order.status !== 'CANCELLED' ? (
                 <div className="flex gap-2">
                   {order.status === 'PENDING' && (
                     <>
@@ -304,7 +369,7 @@ export default function StaffOrdersPage() {
                     </Button>
                   )}
                 </div>
-              )}
+              ) : null}
             </motion.div>
           ))}
         </div>
