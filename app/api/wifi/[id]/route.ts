@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -12,12 +12,13 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const body = await request.json()
     const { ssid, password, description, isActive } = body
 
     // Check if credential exists
     const existingCredential = await prisma.wiFiCredential.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!existingCredential) {
@@ -29,7 +30,7 @@ export async function PUT(
 
     // Update credential
     const credential = await prisma.wiFiCredential.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(ssid && { ssid }),
         ...(password && { password }),
@@ -50,7 +51,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -58,9 +59,10 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     // Soft delete by setting isActive to false
     await prisma.wiFiCredential.update({
-      where: { id: params.id },
+      where: { id },
       data: { isActive: false },
     })
 

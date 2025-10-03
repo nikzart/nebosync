@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -12,8 +12,10 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
+
     const foodItem = await prisma.foodMenu.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!foodItem) {
@@ -35,7 +37,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -43,6 +45,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const body = await request.json()
     const { name, description, price, category, imageUrl, isAvailable, isVeg } = body
 
@@ -56,7 +59,7 @@ export async function PUT(
 
     // Check if item exists
     const existingItem = await prisma.foodMenu.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!existingItem) {
@@ -68,7 +71,7 @@ export async function PUT(
 
     // Update the item
     const updatedItem = await prisma.foodMenu.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         name,
         description,
@@ -92,7 +95,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -100,9 +103,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
+
     // Check if item exists
     const existingItem = await prisma.foodMenu.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!existingItem) {
@@ -114,7 +119,7 @@ export async function DELETE(
 
     // Delete the item
     await prisma.foodMenu.delete({
-      where: { id: params.id },
+      where: { id },
     })
 
     return NextResponse.json({ message: 'Food item deleted successfully' })
