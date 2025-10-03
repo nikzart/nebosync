@@ -32,3 +32,96 @@ export async function GET(
     )
   }
 }
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await auth()
+    if (!session || session.user.role === 'GUEST') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { name, description, price, category, imageUrl, isAvailable } = body
+
+    // Validate required fields
+    if (!name || !price || !category) {
+      return NextResponse.json(
+        { error: 'Missing required fields: name, price, category' },
+        { status: 400 }
+      )
+    }
+
+    // Check if service exists
+    const existingService = await prisma.service.findUnique({
+      where: { id: params.id },
+    })
+
+    if (!existingService) {
+      return NextResponse.json(
+        { error: 'Service not found' },
+        { status: 404 }
+      )
+    }
+
+    // Update the service
+    const updatedService = await prisma.service.update({
+      where: { id: params.id },
+      data: {
+        name,
+        description,
+        price: parseFloat(price),
+        category,
+        imageUrl,
+        isAvailable: isAvailable ?? true,
+      },
+    })
+
+    return NextResponse.json(updatedService)
+  } catch (error) {
+    console.error('Error updating service:', error)
+    return NextResponse.json(
+      { error: 'Failed to update service' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await auth()
+    if (!session || session.user.role === 'GUEST') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Check if service exists
+    const existingService = await prisma.service.findUnique({
+      where: { id: params.id },
+    })
+
+    if (!existingService) {
+      return NextResponse.json(
+        { error: 'Service not found' },
+        { status: 404 }
+      )
+    }
+
+    // Delete the service
+    await prisma.service.delete({
+      where: { id: params.id },
+    })
+
+    return NextResponse.json({ message: 'Service deleted successfully' })
+  } catch (error) {
+    console.error('Error deleting service:', error)
+    return NextResponse.json(
+      { error: 'Failed to delete service' },
+      { status: 500 }
+    )
+  }
+}

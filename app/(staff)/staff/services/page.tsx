@@ -370,10 +370,10 @@ export default function ServicesManagementPage() {
                   </div>
                   <div className="mt-3">
                     <span
-                      className={`text-xs px-2 py-1 rounded-full ${
+                      className={`text-xs px-2 py-1 rounded-full font-medium ${
                         service.isAvailable
-                          ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
-                          : 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'
+                          ? 'bg-green-500/20 text-green-700 dark:bg-green-900/20 dark:text-green-400'
+                          : 'bg-red-500/20 text-red-700 dark:bg-red-900/20 dark:text-red-400'
                       }`}
                     >
                       {service.isAvailable ? 'Available' : 'Unavailable'}

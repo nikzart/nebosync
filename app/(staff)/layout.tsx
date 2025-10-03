@@ -15,7 +15,7 @@ export default async function StaffLayout({
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a]" data-theme="dark">
+    <div className="min-h-screen bg-background">
       <StaffSidebar />
       <div className="ml-20">
         <StaffHeader user={session.user} />
