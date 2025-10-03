@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useSession } from 'next-auth/react'
 import { motion } from 'framer-motion'
-import { Plus, Edit, Trash2, Search, User, Shield, UserCog } from 'lucide-react'
+import { Plus, Edit, Trash2, Search, User, Shield, UserCog, UserMinus, UserCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
@@ -33,7 +33,7 @@ interface Staff {
   isActive: boolean
   createdAt: string
   _count: {
-    messages: number
+    assignedChats: number
   }
 }
 
@@ -52,23 +52,7 @@ export default function StaffManagementPage() {
     isActive: true,
   })
 
-  // Check if current user is admin
-  if (session?.user?.role !== 'ADMIN') {
-    return (
-      <div className="p-8">
-        <Card>
-          <CardContent className="p-12 text-center">
-            <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
-            <p className="text-muted-foreground">
-              You must be an admin to access this page
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
+  // Fetch staff data (must be before conditional return)
   const { data: staff, isLoading } = useQuery<Staff[]>({
     queryKey: ['all-staff'],
     queryFn: async () => {
@@ -142,12 +126,55 @@ export default function StaffManagementPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-staff'] })
-      toast.success('Staff member deactivated successfully')
+      toast.success('Staff member deleted successfully')
     },
     onError: (error: Error) => {
       toast.error(error.message)
     },
   })
+
+  const toggleActiveMutation = useMutation({
+    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
+      const res = await fetch(`/api/staff/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive }),
+      })
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Failed to update staff status')
+      }
+      return res.json()
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['all-staff'] })
+      toast.success(
+        variables.isActive
+          ? 'Staff member activated successfully'
+          : 'Staff member deactivated successfully'
+      )
+    },
+    onError: (error: Error) => {
+      toast.error(error.message)
+    },
+  })
+
+  // Check if current user is admin (after all hooks)
+  if (session?.user?.role !== 'ADMIN') {
+    return (
+      <div className="p-8">
+        <Card>
+          <CardContent className="p-12 text-center">
+            <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
+            <p className="text-muted-foreground">
+              You must be an admin to access this page
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   const filteredStaff = staff?.filter(
     (member) =>
@@ -204,8 +231,20 @@ export default function StaffManagementPage() {
       return
     }
 
-    if (confirm('Are you sure you want to deactivate this staff member?')) {
+    if (confirm('Are you sure you want to permanently delete this staff member? This action cannot be undone.')) {
       await deleteMutation.mutateAsync(id)
+    }
+  }
+
+  const handleToggleActive = async (id: string, currentStatus: boolean) => {
+    if (id === session?.user?.id) {
+      toast.error('Cannot deactivate your own account')
+      return
+    }
+
+    const action = currentStatus ? 'deactivate' : 'activate'
+    if (confirm(`Are you sure you want to ${action} this staff member?`)) {
+      await toggleActiveMutation.mutateAsync({ id, isActive: !currentStatus })
     }
   }
 
@@ -412,7 +451,7 @@ export default function StaffManagementPage() {
                   <div className="mb-4 space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Messages Sent</span>
-                      <span className="font-medium">{member._count.messages}</span>
+                      <span className="font-medium">{member._count.assignedChats}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Joined</span>
@@ -433,24 +472,45 @@ export default function StaffManagementPage() {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-2">
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => handleEdit(member)}
-                      className="flex-1"
+                      className="w-full"
                     >
                       <Edit className="w-4 h-4 mr-1" />
                       Edit
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleDelete(member.id)}
-                      disabled={deleteMutation.isPending || member.id === session?.user?.id}
-                    >
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleToggleActive(member.id, member.isActive)}
+                        disabled={toggleActiveMutation.isPending || member.id === session?.user?.id}
+                        className="flex-1"
+                      >
+                        {member.isActive ? (
+                          <>
+                            <UserMinus className="w-4 h-4 mr-1" />
+                            Deactivate
+                          </>
+                        ) : (
+                          <>
+                            <UserCheck className="w-4 h-4 mr-1" />
+                            Activate
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleDelete(member.id)}
+                        disabled={deleteMutation.isPending || member.id === session?.user?.id}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

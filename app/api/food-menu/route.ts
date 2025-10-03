@@ -33,3 +33,44 @@ export async function GET(request: NextRequest) {
     )
   }
 }
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await auth()
+    if (!session || session.user.role === 'GUEST') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { name, description, price, category, imageUrl, isAvailable, isVeg } = body
+
+    // Validate required fields
+    if (!name || !price || !category) {
+      return NextResponse.json(
+        { error: 'Missing required fields: name, price, category' },
+        { status: 400 }
+      )
+    }
+
+    // Create the item
+    const newItem = await prisma.foodMenu.create({
+      data: {
+        name,
+        description,
+        price: parseFloat(price),
+        category,
+        imageUrl,
+        isAvailable: isAvailable ?? true,
+        isVeg: isVeg ?? true,
+      },
+    })
+
+    return NextResponse.json(newItem, { status: 201 })
+  } catch (error) {
+    console.error('Error creating food item:', error)
+    return NextResponse.json(
+      { error: 'Failed to create food item' },
+      { status: 500 }
+    )
+  }
+}

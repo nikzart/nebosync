@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -13,9 +13,10 @@ import {
   Users,
   FileText,
   UserCog,
-  Plus
+  LogOut
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
 
 interface NavigationItem {
   name: string
@@ -48,12 +49,23 @@ export function StaffSidebar() {
     return true
   })
 
+  const handleLogout = async () => {
+    if (confirm('Are you sure you want to logout?')) {
+      try {
+        await signOut({ callbackUrl: '/login', redirect: true })
+        toast.success('Logged out successfully')
+      } catch (error) {
+        toast.error('Failed to logout')
+      }
+    }
+  }
+
   return (
-    <aside className="fixed left-0 top-0 h-screen w-20 bg-[#0a0a0a] border-r border-[#2a2a2a] flex flex-col items-center py-6 z-50">
+    <aside className="fixed left-0 top-0 h-screen w-20 bg-card border-r border-border flex flex-col items-center py-6 z-50">
       {/* Logo */}
       <Link href="/staff" className="mb-8">
-        <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center">
-          <span className="text-black font-bold text-xl">N</span>
+        <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
+          <span className="text-primary-foreground font-bold text-xl">N</span>
         </div>
       </Link>
 
@@ -68,8 +80,8 @@ export function StaffSidebar() {
               className={cn(
                 'w-12 h-12 rounded-2xl flex items-center justify-center transition-colors flex-shrink-0',
                 isActive
-                  ? 'bg-[#a3ff57] text-black'
-                  : 'bg-[#1a1a1a] text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground'
               )}
               title={item.name}
             >
@@ -79,9 +91,13 @@ export function StaffSidebar() {
         })}
       </nav>
 
-      {/* Add button */}
-      <button className="w-12 h-12 rounded-2xl bg-[#1a1a1a] text-gray-400 hover:bg-[#2a2a2a] hover:text-white flex items-center justify-center transition-colors">
-        <Plus className="w-5 h-5" />
+      {/* Logout button */}
+      <button
+        onClick={handleLogout}
+        className="w-12 h-12 rounded-2xl bg-secondary text-muted-foreground hover:bg-destructive/20 hover:text-destructive flex items-center justify-center transition-colors"
+        title="Logout"
+      >
+        <LogOut className="w-5 h-5" />
       </button>
     </aside>
   )

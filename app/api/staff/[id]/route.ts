@@ -17,7 +17,7 @@ export async function PUT(
     const { name, email, password, role, isActive } = body
 
     // Check if staff exists
-    const existingStaff = await prisma.staff.findUnique({
+    const existingStaff = await prisma.user.findUnique({
       where: { id: params.id },
     })
 
@@ -27,7 +27,7 @@ export async function PUT(
 
     // Check if email is being changed and if it already exists
     if (email && email !== existingStaff.email) {
-      const emailExists = await prisma.staff.findUnique({
+      const emailExists = await prisma.user.findUnique({
         where: { email },
       })
 
@@ -52,7 +52,7 @@ export async function PUT(
     }
 
     // Update staff
-    const staff = await prisma.staff.update({
+    const staff = await prisma.user.update({
       where: { id: params.id },
       data: updateData,
       select: {
@@ -86,7 +86,7 @@ export async function DELETE(
     }
 
     // Check if staff exists
-    const staff = await prisma.staff.findUnique({
+    const staff = await prisma.user.findUnique({
       where: { id: params.id },
     })
 
@@ -102,17 +102,64 @@ export async function DELETE(
       )
     }
 
-    // Soft delete by setting isActive to false instead of hard delete
-    await prisma.staff.update({
+    // Hard delete
+    await prisma.user.delete({
       where: { id: params.id },
-      data: { isActive: false },
     })
 
-    return NextResponse.json({ message: 'Staff deactivated successfully' })
+    return NextResponse.json({ message: 'Staff deleted successfully' })
   } catch (error) {
     console.error('Error deleting staff:', error)
     return NextResponse.json(
       { error: 'Failed to delete staff' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await auth()
+    if (!session || session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { isActive } = body
+
+    // Check if staff exists
+    const staff = await prisma.user.findUnique({
+      where: { id: params.id },
+    })
+
+    if (!staff) {
+      return NextResponse.json({ error: 'Staff not found' }, { status: 404 })
+    }
+
+    // Prevent deactivating yourself
+    if (params.id === session.user.id) {
+      return NextResponse.json(
+        { error: 'Cannot deactivate your own account' },
+        { status: 400 }
+      )
+    }
+
+    // Toggle isActive status
+    await prisma.user.update({
+      where: { id: params.id },
+      data: { isActive: isActive ?? !staff.isActive },
+    })
+
+    return NextResponse.json({
+      message: isActive === false ? 'Staff deactivated successfully' : 'Staff activated successfully'
+    })
+  } catch (error) {
+    console.error('Error updating staff status:', error)
+    return NextResponse.json(
+      { error: 'Failed to update staff status' },
       { status: 500 }
     )
   }

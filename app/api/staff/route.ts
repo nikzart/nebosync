@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const staff = await prisma.staff.findMany({
+    const staff = await prisma.user.findMany({
       select: {
         id: true,
         name: true,
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
         createdAt: true,
         _count: {
           select: {
-            messages: true,
+            assignedChats: true,
           },
         },
       },
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if email already exists
-    const existingStaff = await prisma.staff.findUnique({
+    const existingStaff = await prisma.user.findUnique({
       where: { email },
     })
 
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 10)
 
     // Create staff
-    const staff = await prisma.staff.create({
+    const staff = await prisma.user.create({
       data: {
         name,
         email,

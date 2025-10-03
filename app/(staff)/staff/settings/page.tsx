@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useSession } from 'next-auth/react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -13,14 +14,27 @@ import {
   Shield,
   Palette,
   Save,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  Plus,
+  Trash2
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTheme } from 'next-themes'
 
+interface WiFiCredential {
+  id: string
+  ssid: string
+  password: string
+  description: string | null
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
 export default function SettingsPage() {
   const { data: session } = useSession()
   const { theme, setTheme } = useTheme()
+  const queryClient = useQueryClient()
 
   // Hotel Information
   const [hotelInfo, setHotelInfo] = useState({
@@ -31,13 +45,19 @@ export default function SettingsPage() {
     website: 'https://nebosync.hotel',
   })
 
-  // WiFi Settings
-  const [wifiSettings, setWifiSettings] = useState({
-    ssid: 'NeboSync_Guest_WiFi',
-    password: 'WelcomeGuest2024',
-    staffSsid: 'NeboSync_Staff_WiFi',
-    staffPassword: 'StaffAccess2024',
+  // Fetch WiFi credentials
+  const { data: wifiCredentials, isLoading: wifiLoading } = useQuery<WiFiCredential[]>({
+    queryKey: ['wifi-credentials'],
+    queryFn: async () => {
+      const res = await fetch('/api/wifi')
+      if (!res.ok) throw new Error('Failed to fetch WiFi credentials')
+      return res.json()
+    },
   })
+
+  // Local state for editing
+  const [editingWifi, setEditingWifi] = useState<Partial<WiFiCredential> | null>(null)
+  const [newWifi, setNewWifi] = useState({ ssid: '', password: '', description: '' })
 
   // Notification Settings
   const [notificationSettings, setNotificationSettings] = useState({
@@ -53,9 +73,89 @@ export default function SettingsPage() {
     toast.success('Hotel information saved successfully')
   }
 
-  const handleSaveWifiSettings = () => {
-    // In production, this would save to an API
-    toast.success('WiFi settings saved successfully')
+  const createWifiMutation = useMutation({
+    mutationFn: async (data: typeof newWifi) => {
+      const res = await fetch('/api/wifi', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Failed to create WiFi credential')
+      }
+      return res.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['wifi-credentials'] })
+      toast.success('WiFi credential created successfully')
+      setNewWifi({ ssid: '', password: '', description: '' })
+    },
+    onError: (error: Error) => {
+      toast.error(error.message)
+    },
+  })
+
+  const updateWifiMutation = useMutation({
+    mutationFn: async ({ id, ...data }: Partial<WiFiCredential> & { id: string }) => {
+      const res = await fetch(`/api/wifi/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Failed to update WiFi credential')
+      }
+      return res.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['wifi-credentials'] })
+      toast.success('WiFi credential updated successfully')
+      setEditingWifi(null)
+    },
+    onError: (error: Error) => {
+      toast.error(error.message)
+    },
+  })
+
+  const deleteWifiMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/wifi/${id}`, {
+        method: 'DELETE',
+      })
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Failed to delete WiFi credential')
+      }
+      return res.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['wifi-credentials'] })
+      toast.success('WiFi credential deleted successfully')
+    },
+    onError: (error: Error) => {
+      toast.error(error.message)
+    },
+  })
+
+  const handleCreateWifi = () => {
+    if (!newWifi.ssid || !newWifi.password) {
+      toast.error('SSID and password are required')
+      return
+    }
+    createWifiMutation.mutate(newWifi)
+  }
+
+  const handleUpdateWifi = () => {
+    if (!editingWifi?.id) return
+    updateWifiMutation.mutate(editingWifi as WiFiCredential)
+  }
+
+  const handleDeleteWifi = (id: string) => {
+    if (confirm('Are you sure you want to delete this WiFi credential?')) {
+      deleteWifiMutation.mutate(id)
+    }
   }
 
   const handleSaveNotifications = () => {
@@ -170,74 +270,159 @@ export default function SettingsPage() {
         {/* WiFi Settings */}
         <TabsContent value="wifi">
           <div className="space-y-6">
+            {/* Create New WiFi Credential */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Wifi className="w-5 h-5" />
-                  Guest WiFi
+                  <Plus className="w-5 h-5" />
+                  Add New WiFi Network
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Network Name (SSID)</label>
+                  <label className="text-sm font-medium mb-2 block">Network Name (SSID) *</label>
                   <Input
-                    value={wifiSettings.ssid}
-                    onChange={(e) =>
-                      setWifiSettings({ ...wifiSettings, ssid: e.target.value })
-                    }
-                    placeholder="WiFi network name"
+                    value={newWifi.ssid}
+                    onChange={(e) => setNewWifi({ ...newWifi, ssid: e.target.value })}
+                    placeholder="e.g. NeboSync_Guest_WiFi"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Password</label>
+                  <label className="text-sm font-medium mb-2 block">Password *</label>
                   <Input
                     type="text"
-                    value={wifiSettings.password}
-                    onChange={(e) =>
-                      setWifiSettings({ ...wifiSettings, password: e.target.value })
-                    }
+                    value={newWifi.password}
+                    onChange={(e) => setNewWifi({ ...newWifi, password: e.target.value })}
                     placeholder="WiFi password"
                   />
                 </div>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Description</label>
+                  <Input
+                    value={newWifi.description}
+                    onChange={(e) => setNewWifi({ ...newWifi, description: e.target.value })}
+                    placeholder="e.g. Guest WiFi, Staff WiFi"
+                  />
+                </div>
+                <Button
+                  onClick={handleCreateWifi}
+                  disabled={createWifiMutation.isPending}
+                  className="gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Create WiFi Network
+                </Button>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="w-5 h-5" />
-                  Staff WiFi
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Network Name (SSID)</label>
-                  <Input
-                    value={wifiSettings.staffSsid}
-                    onChange={(e) =>
-                      setWifiSettings({ ...wifiSettings, staffSsid: e.target.value })
-                    }
-                    placeholder="Staff WiFi network name"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Password</label>
-                  <Input
-                    type="text"
-                    value={wifiSettings.staffPassword}
-                    onChange={(e) =>
-                      setWifiSettings({ ...wifiSettings, staffPassword: e.target.value })
-                    }
-                    placeholder="Staff WiFi password"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Button onClick={handleSaveWifiSettings} className="gap-2">
-              <Save className="w-4 h-4" />
-              Save WiFi Settings
-            </Button>
+            {/* Existing WiFi Credentials */}
+            {wifiLoading ? (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <p className="text-muted-foreground">Loading WiFi credentials...</p>
+                </CardContent>
+              </Card>
+            ) : wifiCredentials && wifiCredentials.length > 0 ? (
+              wifiCredentials.map((credential) => (
+                <Card key={credential.id}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Wifi className="w-5 h-5" />
+                        {editingWifi?.id === credential.id ? (
+                          <Input
+                            value={editingWifi.description || ''}
+                            onChange={(e) =>
+                              setEditingWifi({ ...editingWifi, description: e.target.value })
+                            }
+                            placeholder="Description"
+                            className="w-48"
+                          />
+                        ) : (
+                          <span>{credential.description || 'WiFi Network'}</span>
+                        )}
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleDeleteWifi(credential.id)}
+                        disabled={deleteWifiMutation.isPending}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Network Name (SSID)</label>
+                      {editingWifi?.id === credential.id ? (
+                        <Input
+                          value={editingWifi.ssid}
+                          onChange={(e) =>
+                            setEditingWifi({ ...editingWifi, ssid: e.target.value })
+                          }
+                          placeholder="SSID"
+                        />
+                      ) : (
+                        <Input value={credential.ssid} readOnly className="bg-muted" />
+                      )}
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Password</label>
+                      {editingWifi?.id === credential.id ? (
+                        <Input
+                          type="text"
+                          value={editingWifi.password}
+                          onChange={(e) =>
+                            setEditingWifi({ ...editingWifi, password: e.target.value })
+                          }
+                          placeholder="Password"
+                        />
+                      ) : (
+                        <Input value={credential.password} readOnly className="bg-muted" />
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      {editingWifi?.id === credential.id ? (
+                        <>
+                          <Button
+                            onClick={handleUpdateWifi}
+                            disabled={updateWifiMutation.isPending}
+                            className="gap-2"
+                          >
+                            <Save className="w-4 h-4" />
+                            Save Changes
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => setEditingWifi(null)}
+                          >
+                            Cancel
+                          </Button>
+                        </>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          onClick={() => setEditingWifi(credential)}
+                        >
+                          Edit
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <Wifi className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                  <h2 className="text-xl font-semibold mb-2">No WiFi credentials</h2>
+                  <p className="text-muted-foreground">
+                    Create your first WiFi network using the form above
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </TabsContent>
 
