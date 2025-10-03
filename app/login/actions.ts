@@ -2,7 +2,6 @@
 
 import { signIn } from '@/auth'
 import { AuthError } from 'next-auth'
-import { redirect } from 'next/navigation'
 
 export async function staffLogin(email: string, password: string) {
   try {
@@ -10,7 +9,7 @@ export async function staffLogin(email: string, password: string) {
       email,
       password,
     })
-    redirect('/staff')
+    return { success: true, redirectTo: '/staff' }
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {
@@ -30,7 +29,7 @@ export async function guestLogin(phone: string, roomNumber: string) {
       phone,
       roomNumber,
     })
-    redirect('/guest')
+    return { success: true, redirectTo: '/guest' }
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {
