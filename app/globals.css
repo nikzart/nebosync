@@ -106,11 +106,7 @@
 }
 
 body {
-  @apply bg-background text-foreground;
+  @apply text-foreground;
+  background: linear-gradient(135deg, #f9f5ff 0%, #ffffff 50%, #f9f5ff 100%);
   font-feature-settings: "rlig" 1, "calt" 1;
-}
-
-/* Smooth transitions for theme switching */
-* {
-  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
