@@ -255,6 +255,33 @@ Socket.io setup planned for:
 - Uses `signOut()` from NextAuth with redirect to `/login`
 - Toast notifications for success/error feedback
 
+### Functional Header Quick Stats (October 2025)
+- **Replaced placeholder buttons** in staff header with functional quick stats
+- **Three real-time stat pills**:
+  - Pending Orders - Shows count with orange badge, links to filtered orders view
+  - Messages - Shows unread message count with blue badge
+  - Active Guests - Shows checked-in guest count with green badge
+- **Auto-refetch every 30 seconds** for live updates
+- Each pill highlights when on that page (active state)
+- Added query params to APIs: `?unread=true` for messages, `?active=true` for guests
+
+### Real-time Messaging Implementation (October 2025)
+- **Replaced Socket.io with polling approach** (Socket.io incompatible with Next.js 15 + Turbopack without custom server)
+- **Aggressive polling configuration**:
+  - `refetchInterval: 2000` - Poll every 2 seconds for near-real-time updates
+  - `refetchOnFocus: true` - Fetch when tab gains focus
+  - `refetchOnReconnect: true` - Fetch on network reconnect
+- **Fixed Next.js 15 params issue**:
+  - Used `React.use()` to unwrap params Promise in dynamic routes
+  - Changed type from `{ params: { id: string } }` to `{ params: Promise<{ id: string }> }`
+- **Staff chat enhancements**:
+  - Shows staff member name and role on messages (e.g., "John Doe (ADMIN)")
+  - Guest name shown on guest messages
+- **Applies to both**:
+  - Staff chat: `/app/(staff)/staff/messages/[guestId]/page.tsx`
+  - Guest chat: `/app/(guest)/guest/chat/page.tsx`
+- Messages appear within 2 seconds without manual refresh
+
 ## Known Issues
 
 - NextAuth v5 is beta - may have edge cases

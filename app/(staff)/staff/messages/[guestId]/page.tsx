@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { use, useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -9,7 +9,6 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
-import { connectSocket, disconnectSocket } from '@/lib/socket'
 
 interface Message {
   id: string
@@ -32,30 +31,35 @@ interface Message {
   }
 }
 
-export default function StaffChatPage({ params }: { params: { guestId: string } }) {
+export default function StaffChatPage({ params }: { params: Promise<{ guestId: string }> }) {
+  // Unwrap params Promise for Next.js 15
+  const { guestId } = use(params)
+
   const router = useRouter()
   const { data: session } = useSession()
   const queryClient = useQueryClient()
   const [message, setMessage] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const [isConnected, setIsConnected] = useState(false)
 
   const { data: messages, isLoading } = useQuery<Message[]>({
-    queryKey: ['staff-chat-messages', params.guestId],
+    queryKey: ['staff-chat-messages', guestId],
     queryFn: async () => {
-      const res = await fetch(`/api/messages?guestId=${params.guestId}`)
+      const res = await fetch(`/api/messages?guestId=${guestId}`)
       if (!res.ok) throw new Error('Failed to fetch messages')
       return res.json()
     },
+    refetchInterval: 2000, // Poll every 2 seconds for real-time updates
+    refetchOnFocus: true,
+    refetchOnReconnect: true,
   })
 
   const { data: guest } = useQuery({
-    queryKey: ['guest', params.guestId],
+    queryKey: ['guest', guestId],
     queryFn: async () => {
       const res = await fetch('/api/guests')
       if (!res.ok) throw new Error('Failed to fetch guests')
       const guests = await res.json()
-      return guests.find((g: any) => g.id === params.guestId)
+      return guests.find((g: any) => g.id === guestId)
     },
   })
 
@@ -69,62 +73,23 @@ export default function StaffChatPage({ params }: { params: { guestId: string } 
         body: JSON.stringify({
           content,
           messageType: 'TEXT',
-          guestId: params.guestId,
+          guestId: guestId,
         }),
       })
       if (!res.ok) throw new Error('Failed to send message')
       return res.json()
     },
     onSuccess: (newMessage) => {
+      // Optimistic update
       queryClient.setQueryData<Message[]>(
-        ['staff-chat-messages', params.guestId],
+        ['staff-chat-messages', guestId],
         (old) => [...(old || []), newMessage]
       )
-
-      // Emit socket event
-      const socket = connectSocket()
-      socket.emit('send-message', {
-        guestId: params.guestId,
-        message: newMessage,
-      })
     },
     onError: () => {
       toast.error('Failed to send message')
     },
   })
-
-  // Socket.io connection
-  useEffect(() => {
-    if (!params.guestId) return
-
-    const socket = connectSocket()
-
-    socket.on('connect', () => {
-      console.log('Socket connected')
-      setIsConnected(true)
-      socket.emit('join-room', params.guestId)
-    })
-
-    socket.on('disconnect', () => {
-      console.log('Socket disconnected')
-      setIsConnected(false)
-    })
-
-    socket.on('new-message', (data: { message: Message }) => {
-      queryClient.setQueryData<Message[]>(
-        ['staff-chat-messages', params.guestId],
-        (old) => {
-          const exists = old?.find((m) => m.id === data.message.id)
-          if (exists) return old
-          return [...(old || []), data.message]
-        }
-      )
-    })
-
-    return () => {
-      disconnectSocket()
-    }
-  }, [params.guestId, queryClient])
 
   // Auto scroll to bottom
   useEffect(() => {
@@ -155,9 +120,6 @@ export default function StaffChatPage({ params }: { params: { guestId: string } 
             <h1 className="text-xl font-semibold">{guest?.name || 'Guest'}</h1>
             <p className="text-sm text-muted-foreground">
               {guest?.room ? `Room ${guest.room.roomNumber}` : guest?.phone}
-              {isConnected && (
-                <span className="ml-2 text-green-500">● Online</span>
-              )}
             </p>
           </div>
         </div>
@@ -191,6 +153,11 @@ export default function StaffChatPage({ params }: { params: { guestId: string } 
                     {!isOwnMessage && (
                       <p className="text-xs text-muted-foreground mb-1 font-medium">
                         {msg.guest.name}
+                      </p>
+                    )}
+                    {isOwnMessage && msg.staff && (
+                      <p className="text-xs text-primary-foreground/70 mb-1 font-medium">
+                        {msg.staff.name} ({msg.staff.role})
                       </p>
                     )}
                     <p className="text-sm">{msg.content}</p>

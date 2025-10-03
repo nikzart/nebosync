@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const guestId = searchParams.get('guestId')
+    const unread = searchParams.get('unread')
 
     // For guests, only show their own messages
     // For staff/admin, show messages for specific guest if provided, or all messages
@@ -20,6 +21,7 @@ export async function GET(request: NextRequest) {
         : guestId
         ? { guestId }
         : {}),
+      ...(unread === 'true' && { isRead: false }),
     }
 
     const messages = await prisma.message.findMany({

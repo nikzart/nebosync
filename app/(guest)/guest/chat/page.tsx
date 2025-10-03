@@ -8,7 +8,6 @@ import { Send, Image, Mic, Paperclip } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
-import { connectSocket, disconnectSocket } from '@/lib/socket'
 
 interface Message {
   id: string
@@ -36,7 +35,6 @@ export default function ChatPage() {
   const queryClient = useQueryClient()
   const [message, setMessage] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const [isConnected, setIsConnected] = useState(false)
 
   const { data: messages, isLoading } = useQuery<Message[]>({
     queryKey: ['messages'],
@@ -45,6 +43,9 @@ export default function ChatPage() {
       if (!res.ok) throw new Error('Failed to fetch messages')
       return res.json()
     },
+    refetchInterval: 2000, // Poll every 2 seconds for real-time updates
+    refetchOnFocus: true,
+    refetchOnReconnect: true,
   })
 
   const sendMessageMutation = useMutation({
@@ -63,52 +64,16 @@ export default function ChatPage() {
       return res.json()
     },
     onSuccess: (newMessage) => {
+      // Optimistic update
       queryClient.setQueryData<Message[]>(['messages'], (old) => [
         ...(old || []),
         newMessage,
       ])
-
-      // Emit socket event
-      const socket = connectSocket()
-      socket.emit('send-message', {
-        guestId: session?.user?.id,
-        message: newMessage,
-      })
     },
     onError: () => {
       toast.error('Failed to send message')
     },
   })
-
-  // Socket.io connection
-  useEffect(() => {
-    if (!session?.user?.id) return
-
-    const socket = connectSocket()
-
-    socket.on('connect', () => {
-      console.log('Socket connected')
-      setIsConnected(true)
-      socket.emit('join-room', session.user.id)
-    })
-
-    socket.on('disconnect', () => {
-      console.log('Socket disconnected')
-      setIsConnected(false)
-    })
-
-    socket.on('new-message', (data: { message: Message }) => {
-      queryClient.setQueryData<Message[]>(['messages'], (old) => {
-        const exists = old?.find((m) => m.id === data.message.id)
-        if (exists) return old
-        return [...(old || []), data.message]
-      })
-    })
-
-    return () => {
-      disconnectSocket()
-    }
-  }, [session?.user?.id, queryClient])
 
   // Auto scroll to bottom
   useEffect(() => {
@@ -132,17 +97,7 @@ export default function ChatPage() {
           <div>
             <h1 className="text-2xl font-semibold text-gray-900">Chat with Staff</h1>
             <p className="text-sm text-gray-500">
-              {isConnected ? (
-                <span className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-green-500 rounded-full" />
-                  Online
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-gray-400 rounded-full" />
-                  Offline
-                </span>
-              )}
+              Get help from our team
             </p>
           </div>
         </div>
