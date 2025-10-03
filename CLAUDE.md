@@ -259,11 +259,12 @@ Socket.io setup planned for:
 - **Replaced placeholder buttons** in staff header with functional quick stats
 - **Three real-time stat pills**:
   - Pending Orders - Shows count with orange badge, links to filtered orders view
-  - Messages - Shows unread message count with blue badge
+  - Messages - Shows unread message count with blue badge (shows only unread messages FROM guests)
   - Active Guests - Shows checked-in guest count with green badge
-- **Auto-refetch every 30 seconds** for live updates
+- **Optimized polling**: Auto-refetch every 5 seconds with refetchOnFocus and refetchOnReconnect
 - Each pill highlights when on that page (active state)
 - Added query params to APIs: `?unread=true` for messages, `?active=true` for guests
+- Cache invalidation when order status changes or messages are read
 
 ### Real-time Messaging Implementation (October 2025)
 - **Replaced Socket.io with polling approach** (Socket.io incompatible with Next.js 15 + Turbopack without custom server)
@@ -282,12 +283,47 @@ Socket.io setup planned for:
   - Guest chat: `/app/(guest)/guest/chat/page.tsx`
 - Messages appear within 2 seconds without manual refresh
 
+### Order Placement Fix (October 2025)
+- **Fixed OrderType enum validation error** in checkout page
+- Changed invalid `'SERVICE'` to correct `'ROOM_SERVICE'` enum value
+- Orders now place successfully for room service items
+- Location: `app/(guest)/guest/checkout/page.tsx:33`
+
+### Message Read Status System (October 2025)
+- **Fixed unread message counting** to show only relevant messages:
+  - Staff/Admin: Only count unread messages FROM guests (`isFromGuest: true`)
+  - Guests: Only count unread messages FROM staff (`isFromGuest: false`)
+- **Added PATCH `/api/messages` endpoint** for marking messages as read:
+  - Staff: Marks guest messages as read when viewing chat
+  - Guests: Marks staff messages as read when viewing chat
+  - Automatically updates badge counts
+- **Auto-mark messages as read** using `useEffect` with conditional logic:
+  - Only marks as read when there are actual unread messages
+  - Prevents unnecessary API calls
+  - Compatible with React Query v5 (removed deprecated `onSuccess`)
+- **Guest bottom navigation badge**:
+  - Added unread message count badge on Chat icon
+  - Blue badge with count (shows "9+" for >9 messages)
+  - Polls every 5 seconds for real-time updates
+  - Auto-clears when guest opens chat
+- Badge counters now work correctly: show count when away from chat, stay at 0 when actively viewing
+
+### Clear Chat Functionality (October 2025)
+- **Added admin-only chat clearing** in staff chat interface
+- **DELETE `/api/messages` endpoint** (admin authorization required)
+- **Clear Chat button** in staff chat header:
+  - Red trash icon (Trash2 from lucide-react)
+  - Only visible to admins (`role === 'ADMIN'`)
+  - Confirmation dialog before deletion
+  - Deletes all messages for specific guest
+  - Updates badge counts immediately
+- Location: Staff chat page header with confirmation prompt
+
 ## Known Issues
 
 - NextAuth v5 is beta - may have edge cases
 - Postgres.app path must be in shell PATH for Prisma CLI
 - Hot reload may not catch auth changes - restart dev server
-- Missing `Textarea` component causing checkout page errors (needs creation)
 
 ## Environment Variables
 

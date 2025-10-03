@@ -48,6 +48,34 @@ export default function ChatPage() {
     refetchOnReconnect: true,
   })
 
+  // Mark messages as read when there are unread messages from staff
+  useEffect(() => {
+    if (!messages || messages.length === 0) return
+
+    // Check if there are any unread messages from staff
+    const hasUnreadFromStaff = messages.some(m => !m.isRead && !m.isFromGuest)
+
+    if (hasUnreadFromStaff) {
+      // Mark them as read
+      const markAsRead = async () => {
+        try {
+          await fetch('/api/messages', {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({}),
+          })
+          // Invalidate guest unread count to update badge
+          queryClient.invalidateQueries({ queryKey: ['guest-unread-messages'] })
+        } catch (error) {
+          console.error('Failed to mark messages as read:', error)
+        }
+      }
+      markAsRead()
+    }
+  }, [messages, queryClient])
+
   const sendMessageMutation = useMutation({
     mutationFn: async (content: string) => {
       const res = await fetch('/api/messages', {

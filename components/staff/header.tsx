@@ -46,7 +46,9 @@ export function StaffHeader({ user }: StaffHeaderProps) {
         activeGuests: guests.length,
       }
     },
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 5000, // Refetch every 5 seconds for near-real-time updates
+    refetchOnFocus: true, // Refetch when tab gains focus
+    refetchOnReconnect: true, // Refetch on network reconnect
   })
 
   return (
