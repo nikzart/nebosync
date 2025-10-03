@@ -411,6 +411,31 @@ Socket.io setup planned for:
 - **Result**: All "Route used `params.id`. `params` should be awaited" warnings eliminated
 - **Best practice**: Always destructure params after awaiting in Next.js 15 dynamic routes
 
+### Guest Invoice Download Feature (October 2025)
+- **Updated invoice download API authorization** (`app/api/invoices/[id]/download/route.ts`)
+  - Changed from blocking all guests to allowing guests to download their own invoices
+  - Added guest ownership check: `if (session.user.role === 'GUEST' && invoice.guestId !== session.user.id)`
+  - Guests can now access PDF downloads while maintaining security
+- **Added download button to guest invoice detail page** (`app/(guest)/guest/invoices/[id]/page.tsx`)
+  - Download icon (already imported) now functional in header
+  - "Download PDF" button placed next to page title
+  - Styled with pastel purple theme matching guest UI
+  - Uses same download pattern as staff pages (creates temp link, triggers download, removes link)
+- **Added invoice display to guest orders page** (`app/(guest)/guest/orders/page.tsx`)
+  - Added TypeScript interfaces for `InvoiceItem` with invoice details
+  - Imported `FileText` and `Download` icons from lucide-react
+  - Added `getOrderInvoice()` helper function to extract invoice from order
+  - Added `downloadInvoice()` function with toast notification
+  - Created invoice section for COMPLETED orders:
+    - "Invoice Generated" label with invoice number badge (green)
+    - "Download Invoice PDF" button with dual icons
+    - Only appears when invoice exists for the order
+- **Benefits**:
+  - Guests can download professional PDF invoices for their completed orders
+  - Better transparency and record-keeping for guests
+  - Consistent experience with staff functionality
+  - Maintains security with guest-only access to own invoices
+
 ## Known Issues
 
 - NextAuth v5 is beta - may have edge cases

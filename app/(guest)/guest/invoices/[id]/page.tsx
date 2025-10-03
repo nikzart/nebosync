@@ -46,6 +46,16 @@ export default function GuestInvoicePage({ params }: { params: Promise<{ id: str
     },
   })
 
+  const downloadInvoice = () => {
+    if (!invoice) return
+    const link = document.createElement('a')
+    link.href = `/api/invoices/${invoice.id}/download`
+    link.download = `invoice-${invoice.invoiceNumber}.pdf`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 flex items-center justify-center">
@@ -68,14 +78,23 @@ export default function GuestInvoicePage({ params }: { params: Promise<{ id: str
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 pb-24">
       {/* Header */}
       <header className="sticky top-0 bg-white/80 backdrop-blur-md z-10 px-6 py-4 border-b border-gray-100">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => router.back()}
-            className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => router.back()}
+              className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <h1 className="text-2xl font-semibold text-gray-900">Invoice</h1>
+          </div>
+          <Button
+            onClick={downloadInvoice}
+            className="bg-pastel-purple hover:bg-pastel-purple/90 gap-2"
           >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <h1 className="text-2xl font-semibold text-gray-900">Invoice</h1>
+            <Download className="w-4 h-4" />
+            Download PDF
+          </Button>
         </div>
       </header>
 
