@@ -173,11 +173,45 @@ Socket.io setup planned for:
 6. **Loading states** - Skeleton components (no spinners)
 7. **Type safety** - Extend NextAuth types in `types/next-auth.d.ts`
 
+## Recent Updates (October 2025)
+
+### Order Status System Fix
+- Fixed order workflow to use correct Prisma enum: `PENDING` → `ACCEPTED` → `IN_PROGRESS` → `COMPLETED`
+- Updated staff and guest order pages to use `COMPLETED` instead of incorrect `DELIVERED` status
+- Fixed field mapping: `specialInstructions` → `notes`, removed non-existent `deliveredAt` field
+
+### Invoice System Fixes
+- Corrected invoice schema field names: `items` → `invoiceItems`, `totalAmount/taxAmount/finalAmount` → `subtotal/tax/total`
+- Fixed invoice API routes (`/api/invoices`, `/api/invoices/[id]`) to match Prisma schema
+- Updated invoice download route to use correct field names
+- Updated staff invoices page interface and display logic
+
+### Guest Profile Page (NEW)
+- Created complete guest profile page at `/guest/profile`
+- Features include:
+  - Personal information display (email, phone, room details)
+  - Stay information (check-in, check-out, days stayed/remaining)
+  - Activity statistics (orders, spending, messages, invoices)
+  - Quick actions (view orders, chat, services)
+  - Logout functionality with confirmation
+- Components created:
+  - `profile-header.tsx` - Avatar and back navigation
+  - `profile-info.tsx` - Personal details with icons
+  - `stay-info.tsx` - Check-in/out and duration tracking
+  - `activity-stats.tsx` - Statistics with color-coded cards
+  - `profile-actions.tsx` - Quick actions and logout
+
+### Navigation Updates
+- Added all required pages to staff sidebar (Food Menu, Services, Guests, Invoices, Staff Management)
+- Implemented role-based visibility (Staff Management admin-only)
+- Guest profile now accessible via bottom navigation
+
 ## Known Issues
 
 - NextAuth v5 is beta - may have edge cases
 - Postgres.app path must be in shell PATH for Prisma CLI
 - Hot reload may not catch auth changes - restart dev server
+- Missing `Textarea` component causing checkout page errors (needs creation)
 
 ## Environment Variables
 

@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { auth } from '@/auth'
 import { GuestBottomNav } from '@/components/guest/bottom-nav'
+import { CartProviderWrapper } from '@/components/guest/cart-provider-wrapper'
 
 export default async function GuestLayout({
   children,
@@ -14,11 +15,13 @@ export default async function GuestLayout({
   }
 
   return (
-    <div className="min-h-screen bg-soft-gray pb-20">
-      <main className="max-w-md mx-auto">
-        {children}
-      </main>
-      <GuestBottomNav />
-    </div>
+    <CartProviderWrapper>
+      <div className="min-h-screen bg-soft-gray pb-20">
+        <main className="max-w-md mx-auto">
+          {children}
+        </main>
+        <GuestBottomNav />
+      </div>
+    </CartProviderWrapper>
   )
 }
