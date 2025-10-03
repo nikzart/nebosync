@@ -15,8 +15,9 @@ export function ProfileActions() {
     if (confirm('Are you sure you want to logout?')) {
       setIsLoggingOut(true)
       try {
-        await signOut({ callbackUrl: '/login', redirect: true })
+        await signOut({ redirect: false })
         toast.success('Logged out successfully')
+        router.push('/login')
       } catch (error) {
         toast.error('Failed to logout')
         setIsLoggingOut(false)
