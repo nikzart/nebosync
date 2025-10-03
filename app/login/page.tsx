@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -9,6 +10,7 @@ import { toast } from 'sonner'
 import { staffLogin, guestLogin } from './actions'
 
 export default function LoginPage() {
+  const router = useRouter()
   const [isPending, startTransition] = useTransition()
 
   // Staff login form
@@ -26,8 +28,9 @@ export default function LoginPage() {
       const result = await staffLogin(staffEmail, staffPassword)
       if (result?.error) {
         toast.error('Login failed', { description: result.error })
-      } else {
+      } else if (result?.success) {
         toast.success('Login successful!')
+        router.push(result.redirectTo)
       }
     })
   }
@@ -39,8 +42,9 @@ export default function LoginPage() {
       const result = await guestLogin(guestPhone, guestRoom)
       if (result?.error) {
         toast.error('Login failed', { description: result.error })
-      } else {
+      } else if (result?.success) {
         toast.success('Welcome!')
+        router.push(result.redirectTo)
       }
     })
   }
