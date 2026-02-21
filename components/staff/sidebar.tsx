@@ -11,6 +11,7 @@ import {
   UtensilsCrossed,
   Briefcase,
   Users,
+  BedDouble,
   FileText,
   UserCog,
   LogOut
@@ -32,6 +33,7 @@ const navigation: NavigationItem[] = [
   { name: 'Food Menu', href: '/staff/food-menu', icon: UtensilsCrossed },
   { name: 'Services', href: '/staff/services', icon: Briefcase },
   { name: 'Guests', href: '/staff/guests', icon: Users },
+  { name: 'Rooms', href: '/staff/rooms', icon: BedDouble },
   { name: 'Invoices', href: '/staff/invoices', icon: FileText },
   { name: 'Staff', href: '/staff/staff-management', icon: UserCog, adminOnly: true },
   { name: 'Settings', href: '/staff/settings', icon: Settings },

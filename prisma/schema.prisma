@@ -47,6 +47,14 @@ enum InvoiceStatus {
   CANCELLED
 }
 
+// Enum for room status
+enum RoomStatus {
+  AVAILABLE
+  OCCUPIED
+  MAINTENANCE
+  CLEANING
+}
+
 // Admin and Staff users (unified login)
 model User {
   id            String   @id @default(cuid())
@@ -90,20 +98,44 @@ model Guest {
   @@map("guests")
 }
 
-// Hotel rooms
-model Room {
-  id            String   @id @default(cuid())
-  roomNumber    String   @unique
-  roomType      String
-  floor         Int
-  isOccupied    Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+// Hotel blocks/wings
+model Block {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  totalFloors Int      @default(1)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   // Relations
-  guest         Guest?   @relation("GuestRoom")
+  rooms       Room[]
+
+  @@index([name])
+  @@map("blocks")
+}
+
+// Hotel rooms
+model Room {
+  id            String     @id @default(cuid())
+  roomNumber    String     @unique
+  roomType      String
+  floor         Int
+  blockId       String?
+  pricePerNight Float      @default(0)
+  status        RoomStatus @default(AVAILABLE)
+  isOccupied    Boolean    @default(false)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  // Relations
+  block         Block?     @relation(fields: [blockId], references: [id])
+  guest         Guest?     @relation("GuestRoom")
 
   @@index([roomNumber])
+  @@index([blockId])
+  @@index([floor])
+  @@index([status])
   @@map("rooms")
 }
 

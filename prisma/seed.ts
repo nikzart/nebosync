@@ -34,27 +34,62 @@ async function main() {
   })
   console.log('✅ Staff user created:', staff.email)
 
+  // Create blocks
+  const blockA = await prisma.block.upsert({
+    where: { name: 'A' },
+    update: {},
+    create: { name: 'A', description: 'Main Building', totalFloors: 2 },
+  })
+  const blockB = await prisma.block.upsert({
+    where: { name: 'B' },
+    update: {},
+    create: { name: 'B', description: 'Garden Wing', totalFloors: 2 },
+  })
+  console.log('✅ Created blocks: A, B')
+
   // Create rooms
   const rooms = await Promise.all([
+    // Block A rooms
     prisma.room.upsert({
       where: { roomNumber: '101' },
-      update: {},
-      create: { roomNumber: '101', roomType: 'Deluxe', floor: 1 },
+      update: { blockId: blockA.id, pricePerNight: 3500 },
+      create: { roomNumber: '101', roomType: 'Deluxe', floor: 1, blockId: blockA.id, pricePerNight: 3500 },
     }),
     prisma.room.upsert({
       where: { roomNumber: '102' },
-      update: {},
-      create: { roomNumber: '102', roomType: 'Standard', floor: 1 },
+      update: { blockId: blockA.id, pricePerNight: 2500 },
+      create: { roomNumber: '102', roomType: 'Standard', floor: 1, blockId: blockA.id, pricePerNight: 2500 },
     }),
     prisma.room.upsert({
       where: { roomNumber: '201' },
-      update: {},
-      create: { roomNumber: '201', roomType: 'Suite', floor: 2 },
+      update: { blockId: blockA.id, pricePerNight: 5000 },
+      create: { roomNumber: '201', roomType: 'Suite', floor: 2, blockId: blockA.id, pricePerNight: 5000 },
     }),
     prisma.room.upsert({
       where: { roomNumber: '202' },
-      update: {},
-      create: { roomNumber: '202', roomType: 'Deluxe', floor: 2 },
+      update: { blockId: blockA.id, pricePerNight: 3500 },
+      create: { roomNumber: '202', roomType: 'Deluxe', floor: 2, blockId: blockA.id, pricePerNight: 3500 },
+    }),
+    // Block B rooms
+    prisma.room.upsert({
+      where: { roomNumber: '301' },
+      update: { blockId: blockB.id, pricePerNight: 2000 },
+      create: { roomNumber: '301', roomType: 'Standard', floor: 1, blockId: blockB.id, pricePerNight: 2000 },
+    }),
+    prisma.room.upsert({
+      where: { roomNumber: '302' },
+      update: { blockId: blockB.id, pricePerNight: 3000 },
+      create: { roomNumber: '302', roomType: 'Deluxe', floor: 1, blockId: blockB.id, pricePerNight: 3000 },
+    }),
+    prisma.room.upsert({
+      where: { roomNumber: '401' },
+      update: { blockId: blockB.id, pricePerNight: 4500 },
+      create: { roomNumber: '401', roomType: 'Suite', floor: 2, blockId: blockB.id, pricePerNight: 4500 },
+    }),
+    prisma.room.upsert({
+      where: { roomNumber: '402' },
+      update: { blockId: blockB.id, pricePerNight: 6000 },
+      create: { roomNumber: '402', roomType: 'Premium', floor: 2, blockId: blockB.id, pricePerNight: 6000 },
     }),
   ])
   console.log(`✅ Created ${rooms.length} rooms`)
@@ -77,7 +112,7 @@ async function main() {
   // Update room occupation status
   await prisma.room.update({
     where: { id: rooms[0].id },
-    data: { isOccupied: true },
+    data: { isOccupied: true, status: 'OCCUPIED' },
   })
 
   // Create services

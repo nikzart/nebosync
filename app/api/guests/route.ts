@@ -11,9 +11,23 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const active = searchParams.get('active')
+    const search = searchParams.get('search')
 
-    const where = {
-      ...(active === 'true' && { isActive: true }),
+    const where: Record<string, unknown> = {}
+
+    if (active === 'true') {
+      where.isActive = true
+    } else if (active === 'false') {
+      where.isActive = false
+    }
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { phone: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+        { room: { roomNumber: { contains: search, mode: 'insensitive' } } },
+      ]
     }
 
     const guests = await prisma.guest.findMany({
@@ -25,6 +39,7 @@ export async function GET(request: NextRequest) {
             roomNumber: true,
             roomType: true,
             floor: true,
+            block: true,
           },
         },
         _count: {
