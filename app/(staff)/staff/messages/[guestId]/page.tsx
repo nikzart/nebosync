@@ -4,7 +4,7 @@ import { use, useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Send, Trash2, Circle } from 'lucide-react'
+import { ArrowLeft, Send, Trash2, Circle, Check, CheckCheck } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -193,16 +193,39 @@ export default function StaffChatPage({ params }: { params: Promise<{ guestId: s
     return !isSameDay(prev, curr)
   }
 
-  // Determine if consecutive messages are from the same sender (for tighter grouping)
   function isSameSenderAsPrev(index: number): boolean {
     if (!messages || index === 0) return false
     const prev = messages[index - 1]
     const curr = messages[index]
     if (prev.isFromGuest !== curr.isFromGuest) return false
-    // Also check if within 2 minutes for grouping
     const prevTime = new Date(prev.createdAt).getTime()
     const currTime = new Date(curr.createdAt).getTime()
     return (currTime - prevTime) < 120000
+  }
+
+  function isSameSenderAsNext(index: number): boolean {
+    if (!messages || index === messages.length - 1) return false
+    const curr = messages[index]
+    const next = messages[index + 1]
+    if (curr.isFromGuest !== next.isFromGuest) return false
+    const currTime = new Date(curr.createdAt).getTime()
+    const nextTime = new Date(next.createdAt).getTime()
+    return (nextTime - currTime) < 120000
+  }
+
+  function getBubbleRadius(isOwn: boolean, isFirst: boolean, isLast: boolean): string {
+    const r = '1.25rem'
+    const sm = '0.25rem'
+    if (isOwn) {
+      if (isFirst && isLast) return `${r} ${r} ${sm} ${r}`
+      if (isFirst) return `${r} ${r} ${sm} ${r}`
+      if (isLast) return `${r} ${sm} ${sm} ${r}`
+      return `${r} ${sm} ${sm} ${r}`
+    }
+    if (isFirst && isLast) return `${r} ${r} ${r} ${sm}`
+    if (isFirst) return `${r} ${r} ${r} ${sm}`
+    if (isLast) return `${sm} ${r} ${r} ${sm}`
+    return `${sm} ${r} ${r} ${sm}`
   }
 
   const guestName = guest?.name || 'Guest'
@@ -253,71 +276,86 @@ export default function StaffChatPage({ params }: { params: Promise<{ guestId: s
       </header>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto min-h-0 px-4 py-4 bg-muted/20">
+      <div className="flex-1 overflow-y-auto min-h-0 px-4 py-3 bg-muted/10">
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
             <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" />
           </div>
         ) : messages && messages.length > 0 ? (
-          <div className="space-y-0.5">
+          <div>
             <AnimatePresence initial={false}>
               {messages.map((msg, index) => {
-                const isOwnMessage = !msg.isFromGuest
+                const isOwn = !msg.isFromGuest
                 const showDate = shouldShowDateSeparator(index)
-                const sameSender = isSameSenderAsPrev(index)
+                const isFirst = !isSameSenderAsPrev(index)
+                const isLast = !isSameSenderAsNext(index)
+                const showAvatar = !isOwn && isLast
+                const radius = getBubbleRadius(isOwn, isFirst, isLast)
+                const time = new Date(msg.createdAt).toLocaleTimeString('en-IN', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })
 
                 return (
                   <div key={msg.id}>
                     {/* Date separator */}
                     {showDate && (
-                      <div className="flex items-center gap-3 py-4">
-                        <div className="flex-1 h-px bg-border/60" />
-                        <span className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider">
+                      <div className="flex justify-center py-4">
+                        <span className="text-[11px] font-medium text-muted-foreground bg-muted/80 rounded-full px-3 py-1">
                           {formatDateSeparator(new Date(msg.createdAt))}
                         </span>
-                        <div className="flex-1 h-px bg-border/60" />
                       </div>
                     )}
 
                     <motion.div
-                      initial={{ opacity: 0, y: 6 }}
+                      initial={{ opacity: 0, y: 4 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.15 }}
-                      className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} ${
-                        sameSender ? 'mt-0.5' : 'mt-3'
+                      transition={{ duration: 0.12 }}
+                      className={`flex items-end gap-2 ${isOwn ? 'justify-end' : 'justify-start'} ${
+                        isFirst ? 'mt-3' : 'mt-[3px]'
                       }`}
                     >
+                      {/* Guest avatar — only on last message of group */}
+                      {!isOwn && (
+                        <div className="w-7 shrink-0">
+                          {showAvatar ? (
+                            <div className={`w-7 h-7 rounded-full ${getInitialColor(msg.guest.name)} flex items-center justify-center text-white text-[10px] font-bold`}>
+                              {msg.guest.name.charAt(0).toUpperCase()}
+                            </div>
+                          ) : null}
+                        </div>
+                      )}
+
                       <div
-                        className={`max-w-[75%] px-3.5 py-2.5 ${
-                          isOwnMessage
-                            ? 'bg-primary text-primary-foreground rounded-2xl rounded-br-md'
-                            : 'bg-card border border-border shadow-sm rounded-2xl rounded-bl-md'
+                        className={`max-w-[70%] px-3 py-2 overflow-hidden ${
+                          isOwn
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-card shadow-[0_1px_2px_rgba(0,0,0,0.08)]'
                         }`}
+                        style={{ borderRadius: radius }}
                       >
-                        {/* Sender label - show on first message of a group */}
-                        {!sameSender && !isOwnMessage && (
-                          <p className="text-[11px] text-muted-foreground mb-1 font-medium">
+                        {isFirst && !isOwn && (
+                          <p className="text-[11px] font-semibold text-primary/80 mb-0.5">
                             {msg.guest.name}
                           </p>
                         )}
-                        {!sameSender && isOwnMessage && msg.staff && (
-                          <p className="text-[11px] text-primary-foreground/60 mb-1 font-medium">
+                        {isFirst && isOwn && msg.staff && (
+                          <p className="text-[11px] font-medium text-primary-foreground/50 mb-0.5">
                             {msg.staff.name}
                           </p>
                         )}
-                        <p className="text-[0.9rem] leading-relaxed">{msg.content}</p>
-                        <p
-                          className={`text-[10px] mt-1 ${
-                            isOwnMessage
-                              ? 'text-primary-foreground/50'
-                              : 'text-muted-foreground/60'
-                          }`}
-                        >
-                          {new Date(msg.createdAt).toLocaleTimeString('en-IN', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </p>
+
+                        <p className="text-[0.9rem] leading-relaxed break-words">{msg.content}</p>
+                        <div className={`flex items-center gap-1 justify-end mt-0.5 ${
+                          isOwn ? 'text-primary-foreground/40' : 'text-muted-foreground/50'
+                        }`}>
+                          <span className="text-[10px] leading-none">{time}</span>
+                          {isOwn && (
+                            msg.isRead
+                              ? <CheckCheck className="w-3.5 h-3.5 text-primary-foreground/60" />
+                              : <Check className="w-3 h-3" />
+                          )}
+                        </div>
                       </div>
                     </motion.div>
                   </div>
@@ -328,9 +366,12 @@ export default function StaffChatPage({ params }: { params: Promise<{ guestId: s
         ) : (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
-              <p className="text-sm text-muted-foreground mb-1">No messages yet</p>
-              <p className="text-xs text-muted-foreground/60">
-                Start a conversation with this guest
+              <div className="w-12 h-12 rounded-full bg-muted/60 flex items-center justify-center mx-auto mb-3">
+                <Send className="w-5 h-5 text-muted-foreground/40" />
+              </div>
+              <p className="text-sm font-medium text-muted-foreground mb-0.5">No messages yet</p>
+              <p className="text-xs text-muted-foreground/50">
+                Send a message to start the conversation
               </p>
             </div>
           </div>
@@ -339,20 +380,20 @@ export default function StaffChatPage({ params }: { params: Promise<{ guestId: s
       </div>
 
       {/* Input */}
-      <div className="shrink-0 bg-card/80 backdrop-blur-sm border-t px-4 py-3">
-        <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+      <div className="shrink-0 bg-card border-t px-4 py-3">
+        <form onSubmit={handleSendMessage} className="flex items-center gap-2.5">
           <Input
             type="text"
             placeholder="Type a message..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            className="flex-1 h-11 rounded-xl bg-muted/50 border-0 focus-visible:ring-1 text-sm"
+            className="flex-1 h-11 rounded-full bg-muted/50 border-0 px-4 focus-visible:ring-1 text-sm"
           />
           <Button
             type="submit"
             disabled={!message.trim() || sendMessageMutation.isPending}
             size="icon"
-            className="w-11 h-11 rounded-xl shrink-0"
+            className="w-10 h-10 rounded-full shrink-0"
           >
             <Send className="w-4 h-4" />
           </Button>
