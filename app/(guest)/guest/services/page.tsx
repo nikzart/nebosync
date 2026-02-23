@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { ArrowLeft, Search, ShoppingCart, ConciergeBell } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/contexts/cart-context'
@@ -129,30 +129,28 @@ export default function ServicesPage() {
             initial="initial"
             animate="animate"
           >
-            <AnimatePresence mode="popLayout">
-              {filteredServices.map((service) => (
-                <ServiceCard
-                  key={service.id}
-                  id={service.id}
-                  name={service.name}
-                  description={service.description || 'No description available'}
-                  price={service.price}
-                  imageUrl={service.imageUrl || ''}
-                  category={service.category}
-                  onAdd={() =>
-                    addItem({
-                      id: service.id,
-                      name: service.name,
-                      price: service.price,
-                      type: 'SERVICE',
-                      imageUrl: service.imageUrl,
-                      category: service.category,
-                      description: service.description,
-                    })
-                  }
-                />
-              ))}
-            </AnimatePresence>
+            {filteredServices.map((service) => (
+              <ServiceCard
+                key={service.id}
+                id={service.id}
+                name={service.name}
+                description={service.description || 'No description available'}
+                price={service.price}
+                imageUrl={service.imageUrl || ''}
+                category={service.category}
+                onAdd={() =>
+                  addItem({
+                    id: service.id,
+                    name: service.name,
+                    price: service.price,
+                    type: 'SERVICE',
+                    imageUrl: service.imageUrl,
+                    category: service.category,
+                    description: service.description,
+                  })
+                }
+              />
+            ))}
           </motion.div>
         ) : (
           <div className="flex flex-col items-center justify-center py-20 px-8">

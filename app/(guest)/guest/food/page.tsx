@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { ArrowLeft, Search, ShoppingCart, UtensilsCrossed } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/contexts/cart-context'
@@ -167,32 +167,30 @@ export default function FoodMenuPage() {
             initial="initial"
             animate="animate"
           >
-            <AnimatePresence mode="popLayout">
-              {filteredItems.map((item) => (
-                <ServiceCard
-                  key={item.id}
-                  id={item.id}
-                  name={item.name}
-                  description={item.description || 'No description available'}
-                  price={item.price}
-                  imageUrl={item.imageUrl || ''}
-                  category={item.category}
-                  isVeg={item.isVeg}
-                  onAdd={() =>
-                    addItem({
-                      id: item.id,
-                      name: item.name,
-                      price: item.price,
-                      type: 'FOOD',
-                      imageUrl: item.imageUrl,
-                      category: item.category,
-                      description: item.description,
-                      isVeg: item.isVeg,
-                    })
-                  }
-                />
-              ))}
-            </AnimatePresence>
+            {filteredItems.map((item) => (
+              <ServiceCard
+                key={item.id}
+                id={item.id}
+                name={item.name}
+                description={item.description || 'No description available'}
+                price={item.price}
+                imageUrl={item.imageUrl || ''}
+                category={item.category}
+                isVeg={item.isVeg}
+                onAdd={() =>
+                  addItem({
+                    id: item.id,
+                    name: item.name,
+                    price: item.price,
+                    type: 'FOOD',
+                    imageUrl: item.imageUrl,
+                    category: item.category,
+                    description: item.description,
+                    isVeg: item.isVeg,
+                  })
+                }
+              />
+            ))}
           </motion.div>
         ) : (
           <div className="flex flex-col items-center justify-center py-20 px-8">

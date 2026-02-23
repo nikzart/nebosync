@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { QuickActions } from '@/components/guest/quick-actions'
 import { Key } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 function getGreeting() {
   const hour = new Date().getHours()
@@ -128,14 +129,18 @@ export default async function GuestHome() {
               {foodItems.map((item) => (
                 <Link key={item.id} href="/guest/food" className="w-[160px] shrink-0 bg-white rounded-[12px] overflow-hidden"
                       style={{ boxShadow: 'var(--shadow-card)' }}>
-                  <div
-                    className="h-[120px] bg-[#F2F0EC]"
-                    style={{
-                      backgroundImage: item.imageUrl ? `url(${item.imageUrl})` : undefined,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center',
-                    }}
-                  />
+                  <div className="h-[120px] bg-[#F2F0EC] relative">
+                    {item.imageUrl && (
+                      <Image
+                        src={item.imageUrl}
+                        alt={item.name}
+                        fill
+                        sizes="160px"
+                        loading="lazy"
+                        className="object-cover"
+                      />
+                    )}
+                  </div>
                   <div className="p-3">
                     <div className="flex items-center gap-1.5 mb-0.5">
                       {item.isVeg !== null && (

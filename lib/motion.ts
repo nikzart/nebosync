@@ -46,11 +46,11 @@ export const springConfig: Transition = {
   damping: 30,
 }
 
-// Nav spring — slightly snappier for navigation transitions
+// Nav spring — smooth and damped for navigation transitions
 export const navSpring: Transition = {
   type: 'spring',
-  stiffness: 500,
-  damping: 35,
+  stiffness: 300,
+  damping: 28,
 }
 
 // Message entrance — fast and subtle

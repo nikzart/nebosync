@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { staggerItem, tapScale } from '@/lib/motion'
 import { cn } from '@/lib/utils'
@@ -24,16 +25,18 @@ export function ServiceCard({ name, description, price, imageUrl, category, isVe
     >
       <div className="flex">
         {/* Image — square, left side */}
-        <div
-          className="w-[100px] h-[100px] shrink-0 bg-[#F2F0EC]"
-          style={{
-            ...(imageUrl && {
-              backgroundImage: `url(${imageUrl})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }),
-          }}
-        />
+        <div className="w-[100px] h-[100px] shrink-0 bg-[#F2F0EC] relative">
+          {imageUrl && (
+            <Image
+              src={imageUrl}
+              alt={name}
+              fill
+              sizes="100px"
+              loading="lazy"
+              className="object-cover"
+            />
+          )}
+        </div>
         {/* Content — right side */}
         <div className="flex-1 p-3 flex flex-col justify-between min-w-0">
           <div>
