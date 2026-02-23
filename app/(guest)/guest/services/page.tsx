@@ -109,22 +109,22 @@ export default function ServicesPage() {
       {/* Service List */}
       <div className="px-5 py-4">
         {isLoading ? (
-          <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-white rounded-[12px] overflow-hidden h-[100px] flex"
+              <div key={i} className="bg-white rounded-[12px] overflow-hidden"
                    style={{ boxShadow: 'var(--shadow-card)' }}>
-                <div className="w-[100px] h-[100px] skeleton-shimmer" />
-                <div className="flex-1 p-3 space-y-2">
-                  <div className="h-3 w-16 rounded skeleton-shimmer" />
+                <div className="h-[120px] skeleton-shimmer" />
+                <div className="p-3 space-y-2">
                   <div className="h-4 w-3/4 rounded skeleton-shimmer" />
                   <div className="h-3 w-full rounded skeleton-shimmer" />
+                  <div className="h-5 w-12 rounded skeleton-shimmer mt-2" />
                 </div>
               </div>
             ))}
           </div>
         ) : filteredServices && filteredServices.length > 0 ? (
           <motion.div
-            className="space-y-3"
+            className="grid grid-cols-2 gap-3"
             variants={staggerContainer}
             initial="initial"
             animate="animate"
