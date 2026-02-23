@@ -136,3 +136,21 @@ body {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* Toast positioning — centered above floating navbar, behind it */
+[data-sonner-toaster] {
+  z-index: 40 !important;
+  bottom: 76px !important;
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%) !important;
+  width: 100% !important;
+  max-width: 28rem !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+[data-sonner-toaster] [data-sonner-toast] {
+  left: 50% !important;
+  transform: translateX(-50%) var(--y) !important;
+}
