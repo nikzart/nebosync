@@ -306,7 +306,7 @@ export default function ChatPage() {
             placeholder="Message..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            className="flex-1 h-10 rounded-full bg-white border border-[#EDECEA] px-4 text-[14px] placeholder:text-[#A1A1A1] focus:outline-none focus:border-[#2D5A3D] transition-colors"
+            className="flex-1 h-10 rounded-full bg-white border border-[#EDECEA] px-4 text-[14px] text-[#1C1C1C] placeholder:text-[#A1A1A1] focus:outline-none focus:border-[#2D5A3D] transition-colors"
           />
           <motion.button
             whileTap={{ scale: 0.9 }}

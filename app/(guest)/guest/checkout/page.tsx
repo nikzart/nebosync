@@ -1,20 +1,41 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Check } from 'lucide-react'
+import { ArrowLeft, Check, ArrowRight, MessageSquare, MapPin } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
+import { useQuery } from '@tanstack/react-query'
 import { useCart } from '@/contexts/cart-context'
 import { toast } from 'sonner'
-import { tapScale } from '@/lib/motion'
+import { staggerContainer, staggerItem, tapScale } from '@/lib/motion'
+import { cn } from '@/lib/utils'
+
+interface GuestProfile {
+  id: string
+  name: string
+  room: { roomNumber: string } | null
+}
 
 export default function CheckoutPage() {
   const router = useRouter()
-  const { items, totalAmount, clearCart } = useCart()
+  const { data: session } = useSession()
+  const { items, totalAmount, totalItems, clearCart } = useCart()
   const [isPending, startTransition] = useTransition()
-  const [specialInstructions, setSpecialInstructions] = useState('')
-  const [requestMessage, setRequestMessage] = useState('')
+  const [notes, setNotes] = useState('')
   const [orderPlaced, setOrderPlaced] = useState(false)
+
+  const { data: guest } = useQuery<GuestProfile>({
+    queryKey: ['guest-profile'],
+    queryFn: async () => {
+      const res = await fetch('/api/guest/profile')
+      if (!res.ok) return null
+      return res.json()
+    },
+    enabled: !!session?.user,
+    staleTime: 60000,
+  })
 
   if (items.length === 0 && !orderPlaced) {
     router.push('/guest/cart')
@@ -47,8 +68,7 @@ export default function CheckoutPage() {
           body: JSON.stringify({
             orderType,
             items: orderItems,
-            specialInstructions: specialInstructions || undefined,
-            requestMessage: requestMessage || undefined,
+            specialInstructions: notes || undefined,
           }),
         })
 
@@ -60,41 +80,87 @@ export default function CheckoutPage() {
 
         setTimeout(() => {
           router.push('/guest/orders')
-        }, 2000)
+        }, 3000)
       } catch (error) {
         console.error('Error placing order:', error)
-        toast.error('Failed to place order', {
-          description: 'Please try again later',
-        })
+        toast.error('Failed to place order')
       }
     })
   }
 
+  // ── Success Screen ──
   if (orderPlaced) {
     return (
       <div className="min-h-screen flex items-center justify-center px-8">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center"
-        >
+        <div className="text-center">
+          {/* Animated checkmark circle */}
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.1 }}
-            className="w-16 h-16 rounded-full bg-[#EBF3ED] flex items-center justify-center mx-auto mb-4"
+            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            className="w-20 h-20 rounded-full bg-[#2D5A3D] flex items-center justify-center mx-auto mb-6"
+            style={{ boxShadow: '0 8px 32px rgba(45,90,61,0.25)' }}
           >
-            <Check className="w-8 h-8 text-[#2D5A3D]" />
+            <motion.div
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, type: 'spring', stiffness: 400, damping: 20 }}
+            >
+              <Check className="w-9 h-9 text-white" strokeWidth={3} />
+            </motion.div>
           </motion.div>
-          <h2 className="text-[20px] font-semibold text-[#1C1C1C] mb-1">Order Placed</h2>
-          <p className="text-[14px] text-[#6B6B6B]">We&apos;ll notify you when it&apos;s ready</p>
-        </motion.div>
+
+          {/* Heading */}
+          <motion.h2
+            initial={{ y: 12, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.25, duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+            className="text-[22px] font-bold text-[#1C1C1C] mb-1.5"
+          >
+            Order Placed!
+          </motion.h2>
+
+          {/* Subtitle */}
+          <motion.p
+            initial={{ y: 12, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.35, duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+            className="text-[14px] text-[#6B6B6B] max-w-[240px] mx-auto mb-8"
+          >
+            We&apos;ll notify you when it&apos;s ready
+          </motion.p>
+
+          {/* View Orders button */}
+          <motion.button
+            initial={{ y: 12, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+            {...tapScale}
+            onClick={() => router.push('/guest/orders')}
+            className="h-11 px-8 rounded-full bg-[#2D5A3D] text-white text-[14px] font-semibold inline-flex items-center gap-2"
+          >
+            View Orders
+            <ArrowRight className="w-4 h-4" />
+          </motion.button>
+
+          {/* Auto-redirect hint */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7, duration: 0.3 }}
+            className="text-[12px] text-[#A1A1A1] mt-4"
+          >
+            Redirecting to orders...
+          </motion.p>
+        </div>
       </div>
     )
   }
 
+  // ── Checkout Form ──
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-[180px]">
+      {/* Header */}
       <header className="sticky top-0 bg-[#FAF9F6]/90 backdrop-blur-lg z-10 px-5 pt-3 pb-3 border-b border-[#EDECEA]">
         <div className="flex items-center gap-3">
           <button
@@ -104,72 +170,183 @@ export default function CheckoutPage() {
           >
             <ArrowLeft className="w-4 h-4 text-[#1C1C1C]" />
           </button>
-          <h1 className="text-[18px] font-semibold text-[#1C1C1C]">Checkout</h1>
+          <div className="flex-1">
+            <h1 className="text-[18px] font-semibold text-[#1C1C1C]">Checkout</h1>
+            <p className="text-[12px] text-[#A1A1A1]">{totalItems} {totalItems === 1 ? 'item' : 'items'}</p>
+          </div>
         </div>
       </header>
 
-      <div className="px-5 py-4 space-y-4">
+      <motion.div
+        className="px-5 py-4 space-y-4"
+        variants={staggerContainer}
+        initial="initial"
+        animate="animate"
+      >
+        {/* Delivery Info */}
+        {guest?.room && (
+          <motion.div
+            variants={staggerItem}
+            className="bg-white rounded-[12px] p-4 flex items-center gap-3"
+            style={{ boxShadow: 'var(--shadow-card)' }}
+          >
+            <div className="w-9 h-9 rounded-[8px] bg-[#EBF3ED] flex items-center justify-center shrink-0">
+              <MapPin className="w-4 h-4 text-[#2D5A3D]" />
+            </div>
+            <div>
+              <p className="text-[11px] text-[#A1A1A1] uppercase tracking-wide">Delivering to</p>
+              <p className="text-[14px] font-semibold text-[#1C1C1C]">Room {guest.room.roomNumber}</p>
+            </div>
+          </motion.div>
+        )}
+
         {/* Order Summary */}
-        <div className="bg-white rounded-[12px] p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
-          <h2 className="text-[16px] font-semibold text-[#1C1C1C] mb-3">Order Summary</h2>
-          <div className="space-y-2.5">
-            {items.map((item) => (
-              <div key={item.id} className="flex justify-between items-center">
-                <div className="flex-1">
-                  <p className="text-[14px] font-medium text-[#1C1C1C]">{item.name}</p>
-                  <p className="text-[12px] text-[#A1A1A1]">
-                    {item.quantity} × ₹{item.price.toLocaleString('en-IN')}
+        <motion.div
+          variants={staggerItem}
+          className="bg-white rounded-[12px] overflow-hidden"
+          style={{ boxShadow: 'var(--shadow-card)' }}
+        >
+          <div className="px-4 pt-4 pb-2">
+            <h2 className="text-[16px] font-semibold text-[#1C1C1C] mb-3">Order Summary</h2>
+          </div>
+
+          <div className="px-4 space-y-0">
+            {items.map((item, index) => (
+              <div
+                key={item.id}
+                className={cn(
+                  'flex items-center gap-3 py-3',
+                  index < items.length - 1 && 'border-b border-[#F2F0EC]'
+                )}
+              >
+                {/* Thumbnail */}
+                <div className="w-12 h-12 rounded-[8px] bg-[#F2F0EC] relative overflow-hidden shrink-0">
+                  {item.imageUrl && (
+                    <Image
+                      src={item.imageUrl}
+                      alt={item.name}
+                      fill
+                      sizes="48px"
+                      className="object-cover"
+                    />
+                  )}
+                </div>
+
+                {/* Details */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    {item.type === 'FOOD' && item.isVeg !== undefined && (
+                      <div className={cn(
+                        'w-3 h-3 rounded-[2px] border-[1.5px] flex items-center justify-center shrink-0',
+                        item.isVeg ? 'border-[#2D5A3D]' : 'border-[#B5403A]'
+                      )}>
+                        <div className={cn(
+                          'w-1 h-1 rounded-full',
+                          item.isVeg ? 'bg-[#2D5A3D]' : 'bg-[#B5403A]'
+                        )} />
+                      </div>
+                    )}
+                    <p className="text-[14px] font-medium text-[#1C1C1C] truncate">{item.name}</p>
+                  </div>
+                  {item.category && (
+                    <p className="text-[11px] text-[#A1A1A1] mt-0.5">{item.category}</p>
+                  )}
+                </div>
+
+                {/* Quantity & Price */}
+                <div className="text-right shrink-0">
+                  <p className="text-[14px] font-semibold text-[#1C1C1C] tabular-nums">
+                    ₹{(item.price * item.quantity).toLocaleString('en-IN')}
+                  </p>
+                  <p className="text-[11px] text-[#A1A1A1] tabular-nums">
+                    ×{item.quantity}
                   </p>
                 </div>
-                <p className="text-[14px] font-semibold text-[#1C1C1C] tabular-nums">
-                  ₹{(item.price * item.quantity).toLocaleString('en-IN')}
-                </p>
               </div>
             ))}
           </div>
-          <div className="border-t border-[#EDECEA] mt-3 pt-3">
+
+          {/* Subtotal */}
+          <div className="mx-4 border-t border-dashed border-[#EDECEA] py-3">
             <div className="flex justify-between items-center">
-              <span className="text-[14px] text-[#6B6B6B]">Total</span>
-              <span className="text-[18px] font-bold text-[#1C1C1C] tabular-nums">
+              <span className="text-[13px] text-[#6B6B6B]">Subtotal</span>
+              <span className="text-[15px] font-bold text-[#1C1C1C] tabular-nums">
                 ₹{totalAmount.toLocaleString('en-IN')}
               </span>
             </div>
+            <div className="flex justify-between items-center mt-1">
+              <span className="text-[13px] text-[#6B6B6B]">Taxes & fees</span>
+              <span className="text-[12px] text-[#A1A1A1]">Calculated on confirmation</span>
+            </div>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Special Instructions */}
-        <div className="bg-white rounded-[12px] p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
-          <h2 className="text-[16px] font-semibold text-[#1C1C1C] mb-3">Special Instructions</h2>
+        {/* Notes & Requests */}
+        <motion.div
+          variants={staggerItem}
+          className="bg-white rounded-[12px] p-4"
+          style={{ boxShadow: 'var(--shadow-card)' }}
+        >
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-9 h-9 rounded-[8px] bg-[#EBF3ED] flex items-center justify-center shrink-0">
+              <MessageSquare className="w-4 h-4 text-[#2D5A3D]" />
+            </div>
+            <div>
+              <h2 className="text-[14px] font-semibold text-[#1C1C1C]">Notes & Requests</h2>
+              <p className="text-[11px] text-[#A1A1A1]">Special instructions or custom requests</p>
+            </div>
+          </div>
           <textarea
-            placeholder="Add any special requests..."
-            value={specialInstructions}
-            onChange={(e) => setSpecialInstructions(e.target.value)}
-            className="w-full min-h-[80px] rounded-[8px] border border-[#EDECEA] p-3 text-[14px] placeholder:text-[#A1A1A1] focus:outline-none focus:border-[#2D5A3D] focus:ring-1 focus:ring-[#2D5A3D]/20 transition-colors resize-none"
+            placeholder="e.g. No onions, extra spicy, deliver by 8pm..."
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            className="w-full min-h-[100px] rounded-[8px] border border-[#EDECEA] p-3 text-[14px] text-[#1C1C1C] placeholder:text-[#A1A1A1] focus:outline-none focus:border-[#2D5A3D] focus:ring-1 focus:ring-[#2D5A3D]/20 transition-colors resize-none bg-[#FAF9F6]"
           />
-        </div>
+        </motion.div>
+      </motion.div>
 
-        {/* Custom Request */}
-        <div className="bg-white rounded-[12px] p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
-          <h2 className="text-[16px] font-semibold text-[#1C1C1C] mb-3">Custom Request</h2>
-          <textarea
-            placeholder="Need something not on the menu? Let us know..."
-            value={requestMessage}
-            onChange={(e) => setRequestMessage(e.target.value)}
-            className="w-full min-h-[80px] rounded-[8px] border border-[#EDECEA] p-3 text-[14px] placeholder:text-[#A1A1A1] focus:outline-none focus:border-[#2D5A3D] focus:ring-1 focus:ring-[#2D5A3D]/20 transition-colors resize-none"
-          />
-        </div>
-      </div>
-
-      {/* Place Order Button */}
+      {/* Bottom Bar — Two-part checkout */}
       <div className="fixed bottom-[88px] left-0 right-0 z-40">
-        <div className="max-w-md mx-auto px-5 pb-4">
+        <div className="max-w-md mx-auto px-5">
+          {/* Summary Card */}
+          <div
+            className="bg-white rounded-t-[16px] px-4 pt-3 pb-2 border border-b-0 border-[#EDECEA]"
+            style={{ boxShadow: '0 -4px 16px rgba(0,0,0,0.04)' }}
+          >
+            <div className="flex justify-between items-center text-[13px] text-[#6B6B6B] mb-1.5">
+              <span>Total ({totalItems} {totalItems === 1 ? 'item' : 'items'})</span>
+              <span className="text-[16px] font-bold text-[#1C1C1C] tabular-nums">
+                ₹{totalAmount.toLocaleString('en-IN')}
+              </span>
+            </div>
+            <div className="flex justify-between items-center text-[13px] text-[#6B6B6B]">
+              <span>Taxes & fees</span>
+              <span className="text-[12px] text-[#A1A1A1]">Calculated on confirmation</span>
+            </div>
+          </div>
+
+          {/* Place Order Button */}
           <motion.button
             {...tapScale}
             onClick={handlePlaceOrder}
             disabled={isPending}
-            className="w-full h-12 rounded-[8px] bg-[#2D5A3D] text-white text-[15px] font-semibold disabled:opacity-50"
+            className="w-full bg-[#2D5A3D] rounded-b-[16px] h-[52px] flex items-center justify-between px-5 disabled:opacity-50"
+            style={{ boxShadow: 'var(--shadow-floating)' }}
           >
-            {isPending ? 'Placing Order...' : `Place Order · ₹${totalAmount.toLocaleString('en-IN')}`}
+            <div className="flex items-center gap-3">
+              <div className="w-7 h-7 rounded-full bg-white/15 flex items-center justify-center">
+                <Check className="w-3.5 h-3.5 text-white" />
+              </div>
+              <span className="text-[15px] font-semibold text-white">
+                {isPending ? 'Placing...' : 'Place Order'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[17px] font-bold text-white tabular-nums">
+                ₹{totalAmount.toLocaleString('en-IN')}
+              </span>
+              <ArrowRight className="w-4 h-4 text-white/60" />
+            </div>
           </motion.button>
         </div>
       </div>

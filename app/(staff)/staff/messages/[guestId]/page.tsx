@@ -257,7 +257,7 @@ export default function StaffChatPage({ params }: { params: Promise<{ guestId: s
             <h1 className="text-sm font-semibold leading-tight truncate">{guestName}</h1>
             <p className="text-xs text-muted-foreground">
               {guest?.room ? `Room ${guest.room.roomNumber}` : guest?.phone}
-              {guest?.isActive && <span className="text-emerald-500 ml-1.5">· Online</span>}
+              {guest?.isActive && <span className="text-emerald-500 ml-1.5">· Checked in</span>}
             </p>
           </div>
 

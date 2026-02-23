@@ -84,7 +84,7 @@ export default function ServicesPage() {
             placeholder="Search services..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-10 pl-10 pr-4 rounded-[8px] bg-white border border-[#EDECEA] text-[14px] placeholder:text-[#A1A1A1] focus:outline-none focus:border-[#2D5A3D] focus:ring-1 focus:ring-[#2D5A3D]/20 transition-colors"
+            className="w-full h-10 pl-10 pr-4 rounded-[8px] bg-white border border-[#EDECEA] text-[14px] text-[#1C1C1C] placeholder:text-[#A1A1A1] focus:outline-none focus:border-[#2D5A3D] focus:ring-1 focus:ring-[#2D5A3D]/20 transition-colors"
           />
         </div>
 
