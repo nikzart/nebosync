@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { ArrowLeft, Search, ShoppingCart, UtensilsCrossed } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/contexts/cart-context'
@@ -162,12 +162,14 @@ export default function FoodMenuPage() {
             ))}
           </div>
         ) : filteredItems && filteredItems.length > 0 ? (
+          <LayoutGroup>
           <motion.div
             className="grid grid-cols-2 gap-3"
             variants={staggerContainer}
             initial="initial"
             animate="animate"
           >
+            <AnimatePresence>
             {filteredItems.map((item) => (
               <ServiceCard
                 key={item.id}
@@ -192,7 +194,9 @@ export default function FoodMenuPage() {
                 }
               />
             ))}
+            </AnimatePresence>
           </motion.div>
+          </LayoutGroup>
         ) : (
           <div className="flex flex-col items-center justify-center py-20 px-8">
             <div className="w-14 h-14 rounded-full bg-[#EBF3ED] flex items-center justify-center mb-4">

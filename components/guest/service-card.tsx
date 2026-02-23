@@ -87,7 +87,10 @@ export function ServiceCard({ id, name, description, price, imageUrl, category, 
   return (
     <>
       <motion.div
+        layout
+        layoutId={id}
         variants={staggerItem}
+        exit={{ opacity: 0, scale: 0.92, transition: { duration: 0.2 } }}
         className="bg-white rounded-[12px] overflow-hidden"
         style={{ boxShadow: 'var(--shadow-card)' }}
       >
