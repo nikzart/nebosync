@@ -77,6 +77,7 @@ export default function FoodMenuPage() {
           <h1 className="text-[18px] font-semibold text-[#1C1C1C] flex-1">Food Menu</h1>
           <button
             onClick={() => router.push('/guest/cart')}
+            data-cart-icon
             className="relative w-9 h-9 rounded-[8px] bg-[#2D5A3D] flex items-center justify-center"
           >
             <ShoppingCart className="w-4 h-4 text-white" />

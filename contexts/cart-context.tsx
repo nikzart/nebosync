@@ -57,7 +57,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
           i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
         )
       )
-      toast.success('Updated quantity')
     } else {
       setItems((currentItems) => [...currentItems, { ...item, quantity: 1 }])
       toast.success('Added to cart')
