@@ -3,11 +3,12 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Search, Leaf, Drumstick, ShoppingCart } from 'lucide-react'
+import { ArrowLeft, Search, ShoppingCart, UtensilsCrossed } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
 import { useCart } from '@/contexts/cart-context'
+import { ServiceCard } from '@/components/guest/service-card'
+import { staggerContainer } from '@/lib/motion'
+import { cn } from '@/lib/utils'
 
 interface FoodItem {
   id: string
@@ -55,25 +56,32 @@ export default function FoodMenuPage() {
     ...Array.from(new Set(foodItems?.map((item) => item.category) || [])),
   ]
 
+  const vegFilters = [
+    { key: 'all', label: 'All' },
+    { key: 'veg', label: 'Veg' },
+    { key: 'non-veg', label: 'Non-Veg' },
+  ]
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50">
+    <div className="min-h-screen">
       {/* Header */}
-      <header className="sticky top-0 bg-white/90 backdrop-blur-xl z-10 px-6 py-5 border-b border-gray-100/50 shadow-sm">
-        <div className="flex items-center gap-4 mb-5">
+      <header className="sticky top-0 bg-[#FAF9F6]/90 backdrop-blur-lg z-10 px-5 pt-3 pb-3 border-b border-[#EDECEA]">
+        <div className="flex items-center gap-3 mb-3">
           <button
             onClick={() => router.back()}
-            className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center hover:bg-purple-200 transition-all hover:scale-105"
+            className="w-9 h-9 rounded-[8px] bg-white flex items-center justify-center"
+            style={{ boxShadow: 'var(--shadow-card)' }}
           >
-            <ArrowLeft className="w-5 h-5 text-purple-600" />
+            <ArrowLeft className="w-4 h-4 text-[#1C1C1C]" />
           </button>
-          <h1 className="text-3xl font-bold text-gray-900 flex-1">Food Menu</h1>
+          <h1 className="text-[18px] font-semibold text-[#1C1C1C] flex-1">Food Menu</h1>
           <button
             onClick={() => router.push('/guest/cart')}
-            className="relative w-10 h-10 rounded-xl bg-lime-accent flex items-center justify-center hover:bg-lime-accent/90 transition-all hover:scale-105 shadow-md"
+            className="relative w-9 h-9 rounded-[8px] bg-[#2D5A3D] flex items-center justify-center"
           >
-            <ShoppingCart className="w-5 h-5" />
+            <ShoppingCart className="w-4 h-4 text-white" />
             {totalItems > 0 && (
-              <span className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-md">
+              <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] bg-[#C9A96E] text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">
                 {totalItems}
               </span>
             )}
@@ -81,64 +89,54 @@ export default function FoodMenuPage() {
         </div>
 
         {/* Search */}
-        <div className="relative mb-4">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <Input
+        <div className="relative mb-3">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A1A1A1]" />
+          <input
             type="text"
             placeholder="Search food items..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-12 h-12 rounded-xl bg-gray-50 border-gray-200 text-base"
+            className="w-full h-10 pl-10 pr-4 rounded-[8px] bg-white border border-[#EDECEA] text-[14px] placeholder:text-[#A1A1A1] focus:outline-none focus:border-[#2D5A3D] focus:ring-1 focus:ring-[#2D5A3D]/20 transition-colors"
           />
         </div>
 
         {/* Veg/Non-Veg Filter */}
-        <div className="flex gap-3 mb-4">
-          <button
-            onClick={() => setVegFilter('all')}
-            className={`flex-1 py-2 rounded-full text-sm font-semibold transition-all ${
-              vegFilter === 'all'
-                ? 'bg-purple-500 text-white shadow-md'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            All
-          </button>
-          <button
-            onClick={() => setVegFilter('veg')}
-            className={`flex-1 py-2 rounded-full text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
-              vegFilter === 'veg'
-                ? 'bg-green-500 text-white shadow-md'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            <Leaf className="w-4 h-4" />
-            Veg
-          </button>
-          <button
-            onClick={() => setVegFilter('non-veg')}
-            className={`flex-1 py-2 rounded-full text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
-              vegFilter === 'non-veg'
-                ? 'bg-red-500 text-white shadow-md'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            <Drumstick className="w-4 h-4" />
-            Non-Veg
-          </button>
+        <div className="flex gap-2 mb-3">
+          {vegFilters.map((filter) => (
+            <button
+              key={filter.key}
+              onClick={() => setVegFilter(filter.key)}
+              className={cn(
+                'flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[13px] font-medium transition-all',
+                vegFilter === filter.key
+                  ? filter.key === 'veg'
+                    ? 'bg-[#2D5A3D] text-white'
+                    : filter.key === 'non-veg'
+                    ? 'bg-[#B5403A] text-white'
+                    : 'bg-[#1C1C1C] text-white'
+                  : 'bg-white text-[#6B6B6B] border border-[#EDECEA]'
+              )}
+            >
+              {filter.key !== 'all' && (
+                <div className="w-2 h-2 rounded-full bg-current" />
+              )}
+              {filter.label}
+            </button>
+          ))}
         </div>
 
-        {/* Category Filter */}
-        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {/* Category pills */}
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide">
           {categories.map((category) => (
             <button
               key={category}
               onClick={() => setCategoryFilter(category)}
-              className={`px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
+              className={cn(
+                'px-3.5 py-1.5 rounded-full text-[13px] font-medium whitespace-nowrap transition-all',
                 categoryFilter === category
-                  ? 'bg-purple-500 text-white shadow-md'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+                  ? 'bg-[#2D5A3D] text-white'
+                  : 'bg-white text-[#6B6B6B] border border-[#EDECEA]'
+              )}
             >
               {category.charAt(0).toUpperCase() + category.slice(1)}
             </button>
@@ -146,104 +144,65 @@ export default function FoodMenuPage() {
         </div>
       </header>
 
-      {/* Food Items Grid */}
-      <div className="px-6 py-6">
+      {/* Food Items */}
+      <div className="px-5 py-4">
         {isLoading ? (
-          <div className="grid gap-4">
+          <div className="space-y-3">
             {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="bg-white rounded-3xl overflow-hidden shadow-sm h-80 animate-pulse"
-              >
-                <div className="h-48 bg-gray-200" />
-                <div className="p-5 space-y-3">
-                  <div className="h-6 bg-gray-200 rounded w-3/4" />
-                  <div className="h-4 bg-gray-200 rounded w-full" />
-                  <div className="h-4 bg-gray-200 rounded w-2/3" />
+              <div key={i} className="bg-white rounded-[12px] overflow-hidden h-[100px] flex"
+                   style={{ boxShadow: 'var(--shadow-card)' }}>
+                <div className="w-[100px] h-[100px] skeleton-shimmer" />
+                <div className="flex-1 p-3 space-y-2">
+                  <div className="h-3 w-16 rounded skeleton-shimmer" />
+                  <div className="h-4 w-3/4 rounded skeleton-shimmer" />
+                  <div className="h-3 w-full rounded skeleton-shimmer" />
                 </div>
               </div>
             ))}
           </div>
         ) : filteredItems && filteredItems.length > 0 ? (
-          <div className="grid gap-4">
+          <motion.div
+            className="space-y-3"
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
+          >
             <AnimatePresence mode="popLayout">
-              {filteredItems.map((item, index) => (
-                <motion.div
+              {filteredItems.map((item) => (
+                <ServiceCard
                   key={item.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                  className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-                >
-                  <div className="relative h-48">
-                    <div
-                      className="absolute inset-0"
-                      style={{
-                        background: item.imageUrl
-                          ? `url(${item.imageUrl})`
-                          : 'linear-gradient(135deg, #c4b5fd 0%, #e0d7ff 100%)',
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                      }}
-                    />
-                    <div className="absolute top-4 left-4 flex gap-2">
-                      <span className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium text-gray-700">
-                        {item.category}
-                      </span>
-                      <span
-                        className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          item.isVeg
-                            ? 'bg-green-500/90 backdrop-blur-sm'
-                            : 'bg-red-500/90 backdrop-blur-sm'
-                        }`}
-                      >
-                        {item.isVeg ? (
-                          <Leaf className="w-4 h-4 text-white" />
-                        ) : (
-                          <Drumstick className="w-4 h-4 text-white" />
-                        )}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-5">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-1">
-                      {item.name}
-                    </h4>
-                    <p className="text-sm text-gray-500 mb-4 line-clamp-2">
-                      {item.description || 'No description available'}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-2xl font-bold text-gray-900">
-                        ₹{item.price.toLocaleString('en-IN')}
-                      </span>
-                      <Button
-                        size="sm"
-                        onClick={() =>
-                          addItem({
-                            id: item.id,
-                            name: item.name,
-                            price: item.price,
-                            type: 'FOOD',
-                            imageUrl: item.imageUrl,
-                            category: item.category,
-                            description: item.description,
-                            isVeg: item.isVeg,
-                          })
-                        }
-                        className="rounded-full bg-lime-accent hover:bg-lime-accent/90 text-black px-6 h-11 font-semibold"
-                      >
-                        Add
-                      </Button>
-                    </div>
-                  </div>
-                </motion.div>
+                  id={item.id}
+                  name={item.name}
+                  description={item.description || 'No description available'}
+                  price={item.price}
+                  imageUrl={item.imageUrl || ''}
+                  category={item.category}
+                  isVeg={item.isVeg}
+                  onAdd={() =>
+                    addItem({
+                      id: item.id,
+                      name: item.name,
+                      price: item.price,
+                      type: 'FOOD',
+                      imageUrl: item.imageUrl,
+                      category: item.category,
+                      description: item.description,
+                      isVeg: item.isVeg,
+                    })
+                  }
+                />
               ))}
             </AnimatePresence>
-          </div>
+          </motion.div>
         ) : (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No food items found</p>
+          <div className="flex flex-col items-center justify-center py-20 px-8">
+            <div className="w-14 h-14 rounded-full bg-[#EBF3ED] flex items-center justify-center mb-4">
+              <UtensilsCrossed className="w-6 h-6 text-[#2D5A3D]" />
+            </div>
+            <h2 className="text-[16px] font-semibold text-[#1C1C1C] mb-1">No items found</h2>
+            <p className="text-[13px] text-[#A1A1A1] text-center max-w-[260px]">
+              Try adjusting your search or filters
+            </p>
           </div>
         )}
       </div>

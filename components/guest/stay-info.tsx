@@ -1,6 +1,6 @@
 'use client'
 
-import { Calendar, Clock } from 'lucide-react'
+import { Calendar } from 'lucide-react'
 import { format } from 'date-fns'
 
 interface StayInfoProps {
@@ -12,49 +12,47 @@ interface StayInfoProps {
 
 export function StayInfo({ checkInDate, checkOutDate, daysStayed, daysRemaining }: StayInfoProps) {
   return (
-    <div className="bg-white rounded-3xl p-6 shadow-sm">
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">Stay Information</h2>
+    <div className="bg-white rounded-[12px] p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
+      <h2 className="text-[16px] font-semibold text-[#1C1C1C] mb-4">Stay Information</h2>
 
-      <div className="space-y-4">
-        {/* Check-in Date */}
+      <div className="space-y-3.5">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-            <Calendar className="w-5 h-5 text-green-600" />
+          <div className="w-9 h-9 rounded-[8px] bg-[#EBF3ED] flex items-center justify-center">
+            <Calendar className="w-4 h-4 text-[#2D5A3D]" />
           </div>
           <div>
-            <p className="text-xs text-gray-500">Check-in</p>
-            <p className="text-sm font-medium text-gray-900">
+            <p className="text-[11px] text-[#A1A1A1] uppercase tracking-wide">Check-in</p>
+            <p className="text-[14px] font-medium text-[#1C1C1C]">
               {format(new Date(checkInDate), 'MMM dd, yyyy')}
             </p>
           </div>
         </div>
 
-        {/* Check-out Date */}
         {checkOutDate && (
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-              <Calendar className="w-5 h-5 text-red-600" />
+            <div className="w-9 h-9 rounded-[8px] bg-[#FDF1F0] flex items-center justify-center">
+              <Calendar className="w-4 h-4 text-[#B5403A]" />
             </div>
             <div>
-              <p className="text-xs text-gray-500">Check-out</p>
-              <p className="text-sm font-medium text-gray-900">
+              <p className="text-[11px] text-[#A1A1A1] uppercase tracking-wide">Check-out</p>
+              <p className="text-[14px] font-medium text-[#1C1C1C]">
                 {format(new Date(checkOutDate), 'MMM dd, yyyy')}
               </p>
             </div>
           </div>
         )}
 
-        {/* Stay Duration */}
-        <div className="bg-gradient-to-r from-pastel-purple/10 to-pastel-lavender/10 rounded-2xl p-4 mt-4">
+        {/* Duration */}
+        <div className="bg-[#FAF9F6] rounded-[8px] p-3.5 mt-2">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-gray-500 mb-1">Days Stayed</p>
-              <p className="text-2xl font-bold text-gray-900">{daysStayed}</p>
+              <p className="text-[11px] text-[#A1A1A1] uppercase tracking-wide mb-0.5">Days Stayed</p>
+              <p className="text-[20px] font-bold text-[#1C1C1C]">{daysStayed}</p>
             </div>
             {daysRemaining !== null && (
               <div className="text-right">
-                <p className="text-xs text-gray-500 mb-1">Days Remaining</p>
-                <p className="text-2xl font-bold text-pastel-purple">{daysRemaining}</p>
+                <p className="text-[11px] text-[#A1A1A1] uppercase tracking-wide mb-0.5">Remaining</p>
+                <p className="text-[20px] font-bold text-[#2D5A3D]">{daysRemaining}</p>
               </div>
             )}
           </div>

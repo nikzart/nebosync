@@ -2,23 +2,17 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { Clock, CheckCircle, Package, XCircle, FileText, Download } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Package, Download } from 'lucide-react'
 import { toast } from 'sonner'
+import { staggerContainer, staggerItem } from '@/lib/motion'
+import { cn } from '@/lib/utils'
 
 interface OrderItem {
   id: string
   quantity: number
   price: number
-  service?: {
-    name: string
-    category: string
-  } | null
-  foodMenu?: {
-    name: string
-    category: string
-    isVeg: boolean
-  } | null
+  service?: { name: string; category: string } | null
+  foodMenu?: { name: string; category: string; isVeg: boolean } | null
 }
 
 interface InvoiceItem {
@@ -42,10 +36,43 @@ interface Order {
   invoiceItems?: InvoiceItem[]
   guest: {
     name: string
-    room: {
-      roomNumber: string
-    } | null
+    room: { roomNumber: string } | null
   }
+}
+
+const statusBarColor: Record<string, string> = {
+  PENDING: 'bg-[#C9A96E]',
+  ACCEPTED: 'bg-[#4A7EC4]',
+  IN_PROGRESS: 'bg-[#2D5A3D]',
+  COMPLETED: 'bg-[#2D5A3D]',
+  CANCELLED: 'bg-[#B5403A]',
+}
+
+const statusBadge: Record<string, string> = {
+  PENDING: 'bg-[#F5F0E4] text-[#A8893D]',
+  ACCEPTED: 'bg-[#EDF3FA] text-[#4A7EC4]',
+  IN_PROGRESS: 'bg-[#EBF3ED] text-[#2D5A3D]',
+  COMPLETED: 'bg-[#EBF3ED] text-[#2D5A3D]',
+  CANCELLED: 'bg-[#FDF1F0] text-[#B5403A]',
+}
+
+function formatStatus(status: string) {
+  return status.replace('_', ' ').toLowerCase().replace(/^\w/, (c) => c.toUpperCase())
+}
+
+function formatRelativeTime(dateStr: string) {
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMins / 60)
+  const diffDays = Math.floor(diffHours / 24)
+
+  if (diffMins < 1) return 'Just now'
+  if (diffMins < 60) return `${diffMins}m ago`
+  if (diffHours < 24) return `${diffHours}h ago`
+  if (diffDays === 1) return 'Yesterday'
+  return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
 }
 
 export default function OrdersPage() {
@@ -56,19 +83,16 @@ export default function OrdersPage() {
       if (!res.ok) throw new Error('Failed to fetch orders')
       return res.json()
     },
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 5000,
+    refetchOnFocus: true,
+    refetchOnReconnect: true,
   })
 
-  // Helper function to get invoice from order
   const getOrderInvoice = (order: Order) => {
-    if (!order.invoiceItems || order.invoiceItems.length === 0) {
-      return null
-    }
-    // Return the first invoice (orders typically have one invoice)
+    if (!order.invoiceItems || order.invoiceItems.length === 0) return null
     return order.invoiceItems[0].invoice
   }
 
-  // Function to download invoice PDF
   const downloadInvoice = (invoiceId: string, invoiceNumber: string) => {
     const link = document.createElement('a')
     link.href = `/api/invoices/${invoiceId}/download`
@@ -81,190 +105,137 @@ export default function OrdersPage() {
 
   const handleCancelOrder = async (orderId: string) => {
     try {
-      const res = await fetch(`/api/orders/${orderId}`, {
-        method: 'DELETE',
-      })
+      const res = await fetch(`/api/orders/${orderId}`, { method: 'DELETE' })
       if (!res.ok) throw new Error('Failed to cancel order')
       toast.success('Order cancelled successfully')
       refetch()
-    } catch (error) {
+    } catch {
       toast.error('Failed to cancel order')
     }
   }
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'PENDING':
-        return <Clock className="w-5 h-5 text-yellow-500" />
-      case 'ACCEPTED':
-      case 'IN_PROGRESS':
-        return <Package className="w-5 h-5 text-blue-500" />
-      case 'COMPLETED':
-        return <CheckCircle className="w-5 h-5 text-green-500" />
-      case 'CANCELLED':
-        return <XCircle className="w-5 h-5 text-red-500" />
-      default:
-        return <Clock className="w-5 h-5 text-gray-500" />
-    }
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'PENDING':
-        return 'bg-yellow-100 text-yellow-700'
-      case 'ACCEPTED':
-        return 'bg-blue-100 text-blue-700'
-      case 'IN_PROGRESS':
-        return 'bg-purple-100 text-purple-700'
-      case 'COMPLETED':
-        return 'bg-green-100 text-green-700'
-      case 'CANCELLED':
-        return 'bg-red-100 text-red-700'
-      default:
-        return 'bg-gray-100 text-gray-700'
-    }
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 pb-24">
-      <header className="px-6 pt-12 pb-6">
-        <h1 className="text-4xl font-bold text-gray-900">Your Orders</h1>
-        <p className="text-gray-600 mt-2 text-base">Track and manage your orders</p>
+    <div className="min-h-screen">
+      <header className="px-5 pt-12 pb-2">
+        <h1 className="text-[24px] font-semibold text-[#1C1C1C] tracking-tight">Orders</h1>
+        <p className="text-[14px] text-[#6B6B6B] mt-1">Track your requests</p>
       </header>
 
-      <div className="px-6 pb-6">
+      <div className="px-5 py-4">
         {isLoading ? (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="bg-white rounded-3xl p-6 animate-pulse"
-              >
-                <div className="h-6 bg-gray-200 rounded w-1/3 mb-4" />
-                <div className="h-4 bg-gray-200 rounded w-2/3 mb-2" />
-                <div className="h-4 bg-gray-200 rounded w-1/2" />
+              <div key={i} className="bg-white rounded-[12px] p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
+                <div className="h-[3px] rounded-full skeleton-shimmer -mx-4 -mt-4 mb-3 rounded-t-[12px]" />
+                <div className="space-y-2">
+                  <div className="h-3 w-20 rounded skeleton-shimmer" />
+                  <div className="h-4 w-3/4 rounded skeleton-shimmer" />
+                  <div className="h-3 w-1/2 rounded skeleton-shimmer" />
+                </div>
               </div>
             ))}
           </div>
         ) : orders && orders.length > 0 ? (
-          <div className="space-y-4">
-            {orders.map((order, index) => (
+          <motion.div
+            className="space-y-3"
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
+          >
+            {orders.map((order) => (
               <motion.div
                 key={order.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
-                whileHover={{ scale: 1.01 }}
-                className="bg-white rounded-[2rem] p-6 hover:shadow-xl transition-all duration-300"
-                style={{ boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}
+                variants={staggerItem}
+                className="bg-white rounded-[12px] overflow-hidden"
+                style={{ boxShadow: 'var(--shadow-card)' }}
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      {getStatusIcon(order.status)}
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                          order.status
-                        )}`}
-                      >
-                        {order.status}
-                      </span>
+                {/* Status bar */}
+                <div className={cn('h-[3px]', statusBarColor[order.status] || 'bg-[#EDECEA]')} />
+
+                <div className="p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <p className="text-[11px] font-medium text-[#A1A1A1] uppercase tracking-wide">
+                        {order.orderType.replace('_', ' ')}
+                      </p>
+                      <p className="text-[13px] text-[#6B6B6B] mt-0.5">
+                        {formatRelativeTime(order.createdAt)}
+                      </p>
                     </div>
-                    <p className="text-sm text-gray-500">
-                      Order #{order.id.slice(0, 8)}
-                    </p>
+                    <span className={cn(
+                      'text-[11px] font-semibold px-2.5 py-1 rounded-full',
+                      statusBadge[order.status] || 'bg-[#F2F0EC] text-[#6B6B6B]'
+                    )}>
+                      {formatStatus(order.status)}
+                    </span>
                   </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold text-gray-900">
-                      ₹{order.totalAmount.toLocaleString('en-IN')}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {new Date(order.createdAt).toLocaleDateString('en-IN', {
-                        day: 'numeric',
-                        month: 'short',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </p>
-                  </div>
-                </div>
 
-                <div className="border-t border-gray-100 pt-4 space-y-2">
-                  {order.orderItems.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex justify-between items-center"
-                    >
-                      <span className="text-sm text-gray-700">
-                        {item.quantity}x{' '}
-                        {item.service?.name || item.foodMenu?.name}
-                      </span>
-                      <span className="text-sm text-gray-500">
-                        ₹{(item.price * item.quantity).toLocaleString('en-IN')}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                {order.notes && (
-                  <div className="mt-4 p-3 bg-gray-50 rounded-2xl">
-                    <p className="text-xs text-gray-500 mb-1">
-                      Notes
-                    </p>
-                    <p className="text-sm text-gray-700">
-                      {order.notes}
-                    </p>
-                  </div>
-                )}
-
-                {order.status === 'PENDING' && (
-                  <div className="mt-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleCancelOrder(order.id)}
-                      className="w-full text-red-500 border-red-200 hover:bg-red-50"
-                    >
-                      Cancel Order
-                    </Button>
-                  </div>
-                )}
-
-                {/* Invoice section for completed orders */}
-                {order.status === 'COMPLETED' && (() => {
-                  const invoice = getOrderInvoice(order)
-                  return invoice ? (
-                    <div className="border-t border-gray-100 pt-4 mt-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-medium text-gray-600">Invoice Generated</span>
-                        <span className="text-xs px-2 py-1 rounded bg-green-500/20 text-green-700 font-medium">
-                          {invoice.invoiceNumber}
+                  {/* Item list */}
+                  <div className="space-y-1.5">
+                    {order.orderItems.map((item) => (
+                      <div key={item.id} className="flex justify-between text-[14px]">
+                        <span className="text-[#1C1C1C]">
+                          {item.quantity}x {item.service?.name || item.foodMenu?.name}
+                        </span>
+                        <span className="text-[#6B6B6B] tabular-nums">
+                          ₹{(item.price * item.quantity).toLocaleString('en-IN')}
                         </span>
                       </div>
-                      <Button
-                        onClick={() => downloadInvoice(invoice.id, invoice.invoiceNumber)}
-                        className="w-full bg-pastel-purple hover:bg-pastel-purple/90 gap-2"
-                        size="sm"
-                      >
-                        <FileText className="w-4 h-4" />
-                        <Download className="w-4 h-4" />
-                        Download Invoice PDF
-                      </Button>
+                    ))}
+                  </div>
+
+                  {order.notes && (
+                    <div className="mt-3 p-2.5 bg-[#FAF9F6] rounded-[8px]">
+                      <p className="text-[12px] text-[#6B6B6B]">{order.notes}</p>
                     </div>
-                  ) : null
-                })()}
+                  )}
+
+                  <div className="border-t border-[#EDECEA] mt-3 pt-3 flex justify-between items-center">
+                    <span className="text-[14px] text-[#6B6B6B]">Total</span>
+                    <span className="text-[16px] font-bold text-[#1C1C1C] tabular-nums">
+                      ₹{order.totalAmount.toLocaleString('en-IN')}
+                    </span>
+                  </div>
+
+                  {/* Cancel button for pending orders */}
+                  {order.status === 'PENDING' && (
+                    <button
+                      onClick={() => handleCancelOrder(order.id)}
+                      className="w-full mt-3 h-9 rounded-[8px] border border-[#B5403A]/20 text-[#B5403A] text-[13px] font-medium"
+                    >
+                      Cancel Order
+                    </button>
+                  )}
+
+                  {/* Invoice download for completed orders */}
+                  {order.status === 'COMPLETED' && (() => {
+                    const invoice = getOrderInvoice(order)
+                    return invoice ? (
+                      <div className="border-t border-[#EDECEA] mt-3 pt-3 flex items-center justify-between">
+                        <span className="text-[12px] text-[#6B6B6B]">
+                          Invoice {invoice.invoiceNumber}
+                        </span>
+                        <button
+                          onClick={() => downloadInvoice(invoice.id, invoice.invoiceNumber)}
+                          className="flex items-center gap-1.5 text-[13px] font-medium text-[#2D5A3D]"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          Download
+                        </button>
+                      </div>
+                    ) : null
+                  })()}
+                </div>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         ) : (
-          <div className="text-center py-12">
-            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Package className="w-12 h-12 text-gray-400" />
+          <div className="flex flex-col items-center justify-center py-20 px-8">
+            <div className="w-14 h-14 rounded-full bg-[#EBF3ED] flex items-center justify-center mb-4">
+              <Package className="w-6 h-6 text-[#2D5A3D]" />
             </div>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-              No orders yet
-            </h2>
-            <p className="text-gray-500 mb-6">
+            <h2 className="text-[16px] font-semibold text-[#1C1C1C] mb-1">No orders yet</h2>
+            <p className="text-[13px] text-[#A1A1A1] text-center max-w-[260px]">
               Start ordering to see your orders here
             </p>
           </div>

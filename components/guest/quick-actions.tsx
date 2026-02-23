@@ -1,40 +1,47 @@
 'use client'
 
 import Link from 'next/link'
-import { UtensilsCrossed, ConciergeBell, MessageSquare, Wifi } from 'lucide-react'
+import { UtensilsCrossed, ConciergeBell, MessageCircle, Wifi } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { staggerContainer, staggerItem, tapScale } from '@/lib/motion'
 
 const actions = [
-  { name: 'Food Menu', href: '/guest/food', icon: UtensilsCrossed, color: 'bg-purple-100' },
-  { name: 'Services', href: '/guest/services', icon: ConciergeBell, color: 'bg-blue-100' },
-  { name: 'Chat', href: '/guest/chat', icon: MessageSquare, color: 'bg-green-100' },
-  { name: 'WiFi', href: '/guest/wifi', icon: Wifi, color: 'bg-orange-100' },
+  { name: 'Order Food', desc: 'Browse menu', href: '/guest/food', icon: UtensilsCrossed },
+  { name: 'Services', desc: 'Room service & more', href: '/guest/services', icon: ConciergeBell },
+  { name: 'Chat', desc: 'Talk to staff', href: '/guest/chat', icon: MessageCircle },
+  { name: 'WiFi', desc: 'Connect to network', href: '/guest/wifi', icon: Wifi },
 ]
 
 export function QuickActions() {
   return (
-    <div className="px-6 mb-8">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-      <div className="grid grid-cols-4 gap-4">
-        {actions.map((action, index) => (
-          <motion.div
-            key={action.name}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: index * 0.1 }}
-          >
-            <Link
-              href={action.href}
-              className="flex flex-col items-center gap-2 group"
-            >
-              <div className={`w-16 h-16 rounded-2xl ${action.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                <action.icon className="w-7 h-7 text-gray-700" />
-              </div>
-              <span className="text-xs text-gray-600 text-center">{action.name}</span>
+    <div className="px-5 mb-6">
+      <h3 className="text-[18px] font-semibold text-[#1C1C1C] tracking-tight mb-3">
+        Quick Actions
+      </h3>
+      <motion.div
+        className="grid grid-cols-2 gap-3"
+        variants={staggerContainer}
+        initial="initial"
+        animate="animate"
+      >
+        {actions.map((action) => (
+          <motion.div key={action.name} variants={staggerItem}>
+            <Link href={action.href}>
+              <motion.div
+                {...tapScale}
+                className="bg-white rounded-[12px] p-4"
+                style={{ boxShadow: 'var(--shadow-card)' }}
+              >
+                <div className="w-10 h-10 rounded-[8px] bg-[#EBF3ED] flex items-center justify-center mb-3">
+                  <action.icon className="w-5 h-5 text-[#2D5A3D]" />
+                </div>
+                <p className="text-[15px] font-semibold text-[#1C1C1C]">{action.name}</p>
+                <p className="text-[12px] text-[#A1A1A1] mt-0.5">{action.desc}</p>
+              </motion.div>
             </Link>
           </motion.div>
         ))}
-      </div>
+      </motion.div>
     </div>
   )
 }

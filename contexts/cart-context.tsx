@@ -50,17 +50,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [items])
 
   const addItem = (item: Omit<CartItem, 'quantity'>) => {
-    setItems((currentItems) => {
-      const existingItem = currentItems.find((i) => i.id === item.id)
-      if (existingItem) {
-        toast.success('Updated quantity')
-        return currentItems.map((i) =>
+    const existing = items.find((i) => i.id === item.id)
+    if (existing) {
+      setItems((currentItems) =>
+        currentItems.map((i) =>
           i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
         )
-      }
+      )
+      toast.success('Updated quantity')
+    } else {
+      setItems((currentItems) => [...currentItems, { ...item, quantity: 1 }])
       toast.success('Added to cart')
-      return [...currentItems, { ...item, quantity: 1 }]
-    })
+    }
   }
 
   const removeItem = (id: string) => {

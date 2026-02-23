@@ -2,12 +2,11 @@
 
 import { useState, useTransition } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowLeft, CheckCircle } from 'lucide-react'
+import { ArrowLeft, Check } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
 import { useCart } from '@/contexts/cart-context'
 import { toast } from 'sonner'
+import { tapScale } from '@/lib/motion'
 
 export default function CheckoutPage() {
   const router = useRouter()
@@ -25,7 +24,6 @@ export default function CheckoutPage() {
   const handlePlaceOrder = async () => {
     startTransition(async () => {
       try {
-        // Determine order type based on items
         const hasFood = items.some((item) => item.type === 'FOOD')
         const hasService = items.some((item) => item.type === 'SERVICE')
         let orderType = 'FOOD'
@@ -35,7 +33,6 @@ export default function CheckoutPage() {
           orderType = 'FOOD'
         }
 
-        // Prepare order items
         const orderItems = items.map((item) => ({
           quantity: item.quantity,
           price: item.price,
@@ -46,9 +43,7 @@ export default function CheckoutPage() {
 
         const response = await fetch('/api/orders', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             orderType,
             items: orderItems,
@@ -57,16 +52,12 @@ export default function CheckoutPage() {
           }),
         })
 
-        if (!response.ok) {
-          throw new Error('Failed to place order')
-        }
+        if (!response.ok) throw new Error('Failed to place order')
 
-        const order = await response.json()
         setOrderPlaced(true)
         clearCart()
         toast.success('Order placed successfully!')
 
-        // Redirect to orders page after 2 seconds
         setTimeout(() => {
           router.push('/guest/orders')
         }, 2000)
@@ -81,69 +72,65 @@ export default function CheckoutPage() {
 
   if (orderPlaced) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 flex items-center justify-center px-6">
+      <div className="min-h-screen flex items-center justify-center px-8">
         <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 0.5, type: 'spring' }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           className="text-center"
         >
-          <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-16 h-16 text-green-500" />
-          </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            Order Placed!
-          </h2>
-          <p className="text-gray-600 mb-4">
-            Your order has been successfully placed.
-          </p>
-          <p className="text-sm text-gray-500">
-            Redirecting to your orders...
-          </p>
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.1 }}
+            className="w-16 h-16 rounded-full bg-[#EBF3ED] flex items-center justify-center mx-auto mb-4"
+          >
+            <Check className="w-8 h-8 text-[#2D5A3D]" />
+          </motion.div>
+          <h2 className="text-[20px] font-semibold text-[#1C1C1C] mb-1">Order Placed</h2>
+          <p className="text-[14px] text-[#6B6B6B]">We&apos;ll notify you when it&apos;s ready</p>
         </motion.div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 pb-32">
-      <header className="sticky top-0 bg-white/80 backdrop-blur-md z-10 px-6 py-4 border-b border-gray-100">
-        <div className="flex items-center gap-4">
+    <div className="min-h-screen">
+      <header className="sticky top-0 bg-[#FAF9F6]/90 backdrop-blur-lg z-10 px-5 pt-3 pb-3 border-b border-[#EDECEA]">
+        <div className="flex items-center gap-3">
           <button
             onClick={() => router.back()}
-            className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+            className="w-9 h-9 rounded-[8px] bg-white flex items-center justify-center"
+            style={{ boxShadow: 'var(--shadow-card)' }}
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4 text-[#1C1C1C]" />
           </button>
-          <h1 className="text-2xl font-semibold text-gray-900">Checkout</h1>
+          <h1 className="text-[18px] font-semibold text-[#1C1C1C]">Checkout</h1>
         </div>
       </header>
 
-      <div className="px-6 py-6 space-y-6">
+      <div className="px-5 py-4 space-y-4">
         {/* Order Summary */}
-        <div className="bg-white rounded-3xl p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Order Summary
-          </h2>
-          <div className="space-y-3">
+        <div className="bg-white rounded-[12px] p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
+          <h2 className="text-[16px] font-semibold text-[#1C1C1C] mb-3">Order Summary</h2>
+          <div className="space-y-2.5">
             {items.map((item) => (
               <div key={item.id} className="flex justify-between items-center">
                 <div className="flex-1">
-                  <p className="font-medium text-gray-900">{item.name}</p>
-                  <p className="text-sm text-gray-500">
-                    Qty: {item.quantity} × ₹{item.price.toLocaleString('en-IN')}
+                  <p className="text-[14px] font-medium text-[#1C1C1C]">{item.name}</p>
+                  <p className="text-[12px] text-[#A1A1A1]">
+                    {item.quantity} × ₹{item.price.toLocaleString('en-IN')}
                   </p>
                 </div>
-                <p className="font-semibold text-gray-900">
+                <p className="text-[14px] font-semibold text-[#1C1C1C] tabular-nums">
                   ₹{(item.price * item.quantity).toLocaleString('en-IN')}
                 </p>
               </div>
             ))}
           </div>
-          <div className="border-t border-gray-200 mt-4 pt-4">
+          <div className="border-t border-[#EDECEA] mt-3 pt-3">
             <div className="flex justify-between items-center">
-              <span className="text-lg font-semibold text-gray-900">Total</span>
-              <span className="text-2xl font-bold text-gray-900">
+              <span className="text-[14px] text-[#6B6B6B]">Total</span>
+              <span className="text-[18px] font-bold text-[#1C1C1C] tabular-nums">
                 ₹{totalAmount.toLocaleString('en-IN')}
               </span>
             </div>
@@ -151,42 +138,39 @@ export default function CheckoutPage() {
         </div>
 
         {/* Special Instructions */}
-        <div className="bg-white rounded-3xl p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Special Instructions
-          </h2>
-          <Textarea
-            placeholder="Add any special requests or instructions for your order..."
+        <div className="bg-white rounded-[12px] p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
+          <h2 className="text-[16px] font-semibold text-[#1C1C1C] mb-3">Special Instructions</h2>
+          <textarea
+            placeholder="Add any special requests..."
             value={specialInstructions}
             onChange={(e) => setSpecialInstructions(e.target.value)}
-            className="min-h-[100px] rounded-2xl"
+            className="w-full min-h-[80px] rounded-[8px] border border-[#EDECEA] p-3 text-[14px] placeholder:text-[#A1A1A1] focus:outline-none focus:border-[#2D5A3D] focus:ring-1 focus:ring-[#2D5A3D]/20 transition-colors resize-none"
           />
         </div>
 
         {/* Custom Request */}
-        <div className="bg-white rounded-3xl p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Custom Request (Optional)
-          </h2>
-          <Textarea
+        <div className="bg-white rounded-[12px] p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
+          <h2 className="text-[16px] font-semibold text-[#1C1C1C] mb-3">Custom Request</h2>
+          <textarea
             placeholder="Need something not on the menu? Let us know..."
             value={requestMessage}
             onChange={(e) => setRequestMessage(e.target.value)}
-            className="min-h-[100px] rounded-2xl"
+            className="w-full min-h-[80px] rounded-[8px] border border-[#EDECEA] p-3 text-[14px] placeholder:text-[#A1A1A1] focus:outline-none focus:border-[#2D5A3D] focus:ring-1 focus:ring-[#2D5A3D]/20 transition-colors resize-none"
           />
         </div>
       </div>
 
       {/* Place Order Button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-4 pb-24">
-        <div className="max-w-md mx-auto">
-          <Button
+      <div className="fixed bottom-[88px] left-0 right-0 z-40">
+        <div className="max-w-md mx-auto px-5 pb-4">
+          <motion.button
+            {...tapScale}
             onClick={handlePlaceOrder}
             disabled={isPending}
-            className="w-full h-14 bg-lime-accent hover:bg-lime-accent/90 text-black text-lg font-semibold rounded-full"
+            className="w-full h-12 rounded-[8px] bg-[#2D5A3D] text-white text-[15px] font-semibold disabled:opacity-50"
           >
             {isPending ? 'Placing Order...' : `Place Order · ₹${totalAmount.toLocaleString('en-IN')}`}
-          </Button>
+          </motion.button>
         </div>
       </div>
     </div>

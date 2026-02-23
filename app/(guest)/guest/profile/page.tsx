@@ -14,7 +14,6 @@ export default async function GuestProfilePage() {
     redirect('/login')
   }
 
-  // Fetch guest data with all related information
   const guest = await prisma.guest.findUnique({
     where: { id: session.user.id },
     include: {
@@ -33,12 +32,8 @@ export default async function GuestProfilePage() {
     redirect('/login')
   }
 
-  // Fetch order statistics
   const totalSpent = await prisma.order.aggregate({
-    where: {
-      guestId: guest.id,
-      status: 'COMPLETED'
-    },
+    where: { guestId: guest.id, status: 'COMPLETED' },
     _sum: { totalAmount: true },
   })
 
@@ -49,7 +44,6 @@ export default async function GuestProfilePage() {
     },
   })
 
-  // Calculate days in stay
   const now = new Date()
   const checkInDate = new Date(guest.checkInDate)
   const checkOutDate = guest.checkOutDate ? new Date(guest.checkOutDate) : null
@@ -60,16 +54,14 @@ export default async function GuestProfilePage() {
     : null
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 pb-24">
-      {/* Header with Avatar and Name */}
+    <div className="min-h-screen">
       <ProfileHeader
         name={guest.name}
         email={guest.email}
         phone={guest.phone}
       />
 
-      <div className="px-6 space-y-4">
-        {/* Personal Information */}
+      <div className="px-5 space-y-4">
         <ProfileInfo
           name={guest.name}
           email={guest.email}
@@ -79,7 +71,6 @@ export default async function GuestProfilePage() {
           floor={guest.room?.floor}
         />
 
-        {/* Stay Information */}
         <StayInfo
           checkInDate={guest.checkInDate}
           checkOutDate={guest.checkOutDate}
@@ -87,7 +78,6 @@ export default async function GuestProfilePage() {
           daysRemaining={daysRemaining}
         />
 
-        {/* Activity Statistics */}
         <ActivityStats
           totalOrders={guest._count.orders}
           activeOrders={activeOrders}
@@ -96,7 +86,6 @@ export default async function GuestProfilePage() {
           totalInvoices={guest._count.invoices}
         />
 
-        {/* Quick Actions */}
         <ProfileActions />
       </div>
     </div>

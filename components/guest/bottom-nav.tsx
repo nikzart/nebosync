@@ -3,12 +3,14 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
-import { Home, ShoppingBag, MessageCircle, User } from 'lucide-react'
+import { Home, ConciergeBell, MessageCircle, User } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
+import { navSpring } from '@/lib/motion'
 
 const navigation = [
   { name: 'Home', href: '/guest', icon: Home },
-  { name: 'Services', href: '/guest/services', icon: ShoppingBag },
+  { name: 'Services', href: '/guest/services', icon: ConciergeBell },
   { name: 'Chat', href: '/guest/chat', icon: MessageCircle },
   { name: 'Profile', href: '/guest/profile', icon: User },
 ]
@@ -16,7 +18,6 @@ const navigation = [
 export function GuestBottomNav() {
   const pathname = usePathname()
 
-  // Fetch unread messages count from staff
   const { data: unreadCount } = useQuery<number>({
     queryKey: ['guest-unread-messages'],
     queryFn: async () => {
@@ -25,50 +26,58 @@ export function GuestBottomNav() {
       const messages = await res.json()
       return messages.length
     },
-    refetchInterval: 5000, // Poll every 5 seconds
+    refetchInterval: 5000,
     refetchOnFocus: true,
     refetchOnReconnect: true,
   })
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-200 z-50">
-      <div className="max-w-md mx-auto px-6 h-20 flex items-center justify-around">
+    <nav className="fixed bottom-4 left-4 right-4 z-50 max-w-md mx-auto">
+      <div className="bg-white/90 backdrop-blur-xl rounded-[20px] border border-[#EDECEA] px-2 py-2 flex items-center justify-around"
+           style={{ boxShadow: 'var(--shadow-floating)' }}>
         {navigation.map((item) => {
-          const isActive = pathname === item.href
+          const isActive = pathname === item.href ||
+            (item.href === '/guest/services' && pathname?.startsWith('/guest/services')) ||
+            (item.href === '/guest/services' && pathname?.startsWith('/guest/food')) ||
+            (item.href === '/guest/services' && pathname?.startsWith('/guest/cart')) ||
+            (item.href === '/guest/services' && pathname?.startsWith('/guest/checkout'))
           const isChatIcon = item.name === 'Chat'
           const showBadge = isChatIcon && !isActive && typeof unreadCount === 'number' && unreadCount > 0
 
           return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className="flex flex-col items-center gap-1 transition-all relative"
-            >
-              <div
+            <Link key={item.name} href={item.href} className="relative">
+              <motion.div
                 className={cn(
-                  'w-12 h-12 rounded-2xl flex items-center justify-center transition-all',
-                  isActive
-                    ? 'bg-lime-accent scale-110'
-                    : 'bg-transparent'
+                  'flex items-center gap-2 px-4 py-2.5 rounded-[14px] transition-colors',
+                  isActive && 'bg-[#2D5A3D]'
                 )}
+                layout
+                transition={navSpring}
               >
-                <item.icon
-                  className={cn(
-                    'w-6 h-6 transition-colors',
-                    isActive ? 'text-black' : 'text-gray-400'
+                <item.icon className={cn(
+                  'w-5 h-5 shrink-0',
+                  isActive ? 'text-white' : 'text-[#A1A1A1]'
+                )} />
+                <AnimatePresence>
+                  {isActive && (
+                    <motion.span
+                      initial={{ width: 0, opacity: 0 }}
+                      animate={{ width: 'auto', opacity: 1 }}
+                      exit={{ width: 0, opacity: 0 }}
+                      transition={navSpring}
+                      className="text-[13px] font-semibold text-white overflow-hidden whitespace-nowrap"
+                    >
+                      {item.name}
+                    </motion.span>
                   )}
-                />
-                {/* Unread message badge */}
-                {showBadge && (
-                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span className="text-[10px] font-semibold text-white">
-                      {unreadCount > 9 ? '9+' : unreadCount}
-                    </span>
-                  </div>
-                )}
-              </div>
-              {isActive && (
-                <div className="w-1 h-1 rounded-full bg-lime-accent" />
+                </AnimatePresence>
+              </motion.div>
+              {showBadge && (
+                <div className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-[#B5403A] rounded-full flex items-center justify-center px-1">
+                  <span className="text-[10px] font-bold text-white">
+                    {unreadCount! > 9 ? '9+' : unreadCount}
+                  </span>
+                </div>
               )}
             </Link>
           )

@@ -1,10 +1,11 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Plus, Minus, Trash2, Leaf, Drumstick } from 'lucide-react'
+import { ArrowLeft, Plus, Minus, Trash2, ShoppingBag } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
 import { useCart } from '@/contexts/cart-context'
+import { staggerContainer, staggerItem, tapScale } from '@/lib/motion'
+import { cn } from '@/lib/utils'
 
 export default function CartPage() {
   const router = useRouter()
@@ -12,173 +13,169 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50">
-        <header className="sticky top-0 bg-white/80 backdrop-blur-md z-10 px-6 py-4 border-b border-gray-100">
-          <div className="flex items-center gap-4">
+      <div className="min-h-screen">
+        <header className="sticky top-0 bg-[#FAF9F6]/90 backdrop-blur-lg z-10 px-5 pt-3 pb-3 border-b border-[#EDECEA]">
+          <div className="flex items-center gap-3">
             <button
               onClick={() => router.back()}
-              className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+              className="w-9 h-9 rounded-[8px] bg-white flex items-center justify-center"
+              style={{ boxShadow: 'var(--shadow-card)' }}
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-4 h-4 text-[#1C1C1C]" />
             </button>
-            <h1 className="text-2xl font-semibold text-gray-900">Cart</h1>
+            <h1 className="text-[18px] font-semibold text-[#1C1C1C]">Cart</h1>
           </div>
         </header>
 
-        <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)] px-6">
-          <div className="text-center">
-            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg
-                className="w-12 h-12 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                />
-              </svg>
-            </div>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-              Your cart is empty
-            </h2>
-            <p className="text-gray-500 mb-6">
-              Add services or food items to get started
-            </p>
-            <Button
-              onClick={() => router.push('/guest')}
-              className="bg-pastel-purple hover:bg-pastel-purple/90"
-            >
-              Start Shopping
-            </Button>
+        <div className="flex flex-col items-center justify-center py-20 px-8">
+          <div className="w-14 h-14 rounded-full bg-[#EBF3ED] flex items-center justify-center mb-4">
+            <ShoppingBag className="w-6 h-6 text-[#2D5A3D]" />
           </div>
+          <h2 className="text-[16px] font-semibold text-[#1C1C1C] mb-1">Your cart is empty</h2>
+          <p className="text-[13px] text-[#A1A1A1] text-center max-w-[260px] mb-6">
+            Add services or food items to get started
+          </p>
+          <motion.button
+            {...tapScale}
+            onClick={() => router.push('/guest')}
+            className="h-10 px-6 rounded-[8px] bg-[#2D5A3D] text-white text-[14px] font-semibold"
+          >
+            Browse Menu
+          </motion.button>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 pb-32">
-      <header className="sticky top-0 bg-white/80 backdrop-blur-md z-10 px-6 py-4 border-b border-gray-100">
-        <div className="flex items-center gap-4 mb-4">
+    <div className="min-h-screen">
+      <header className="sticky top-0 bg-[#FAF9F6]/90 backdrop-blur-lg z-10 px-5 pt-3 pb-3 border-b border-[#EDECEA]">
+        <div className="flex items-center gap-3">
           <button
             onClick={() => router.back()}
-            className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+            className="w-9 h-9 rounded-[8px] bg-white flex items-center justify-center"
+            style={{ boxShadow: 'var(--shadow-card)' }}
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4 text-[#1C1C1C]" />
           </button>
-          <h1 className="text-2xl font-semibold text-gray-900 flex-1">Cart</h1>
+          <h1 className="text-[18px] font-semibold text-[#1C1C1C] flex-1">Cart</h1>
           <button
             onClick={clearCart}
-            className="text-sm text-red-500 font-medium hover:text-red-600"
+            className="text-[13px] text-[#B5403A] font-medium"
           >
             Clear All
           </button>
         </div>
       </header>
 
-      <div className="px-6 py-6">
-        <AnimatePresence mode="popLayout">
-          {items.map((item) => (
-            <motion.div
-              key={item.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.2 }}
-              className="bg-white rounded-3xl p-4 mb-4 shadow-sm"
-            >
-              <div className="flex gap-4">
-                <div
-                  className="w-20 h-20 rounded-2xl bg-gradient-to-br from-pastel-purple to-pastel-lavender flex-shrink-0"
-                  style={{
-                    ...(item.imageUrl && {
-                      backgroundImage: `url(${item.imageUrl})`,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center',
-                    }),
-                  }}
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1 min-w-0 pr-2">
-                      <h3 className="font-semibold text-gray-900 truncate">
-                        {item.name}
-                      </h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                          {item.category}
-                        </span>
-                        {item.type === 'FOOD' && item.isVeg !== undefined && (
-                          <span
-                            className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                              item.isVeg ? 'bg-green-500' : 'bg-red-500'
-                            }`}
-                          >
-                            {item.isVeg ? (
-                              <Leaf className="w-3 h-3 text-white" />
-                            ) : (
-                              <Drumstick className="w-3 h-3 text-white" />
-                            )}
+      <div className="px-5 py-4">
+        <motion.div
+          variants={staggerContainer}
+          initial="initial"
+          animate="animate"
+        >
+          <AnimatePresence mode="popLayout">
+            {items.map((item) => (
+              <motion.div
+                key={item.id}
+                variants={staggerItem}
+                exit={{ opacity: 0, x: 20 }}
+                className="bg-white rounded-[12px] p-3 mb-3"
+                style={{ boxShadow: 'var(--shadow-card)' }}
+              >
+                <div className="flex gap-3">
+                  <div
+                    className="w-16 h-16 rounded-[8px] bg-[#F2F0EC] flex-shrink-0"
+                    style={{
+                      ...(item.imageUrl && {
+                        backgroundImage: `url(${item.imageUrl})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                      }),
+                    }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between mb-1">
+                      <div className="flex-1 min-w-0 pr-2">
+                        <h3 className="text-[15px] font-semibold text-[#1C1C1C] truncate">
+                          {item.name}
+                        </h3>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          {item.type === 'FOOD' && item.isVeg !== undefined && (
+                            <div className={cn(
+                              'w-3.5 h-3.5 rounded-sm border-2 flex items-center justify-center',
+                              item.isVeg ? 'border-[#2D5A3D]' : 'border-[#B5403A]'
+                            )}>
+                              <div className={cn(
+                                'w-1.5 h-1.5 rounded-full',
+                                item.isVeg ? 'bg-[#2D5A3D]' : 'bg-[#B5403A]'
+                              )} />
+                            </div>
+                          )}
+                          <span className="text-[11px] text-[#A1A1A1] uppercase tracking-wide">
+                            {item.category}
                           </span>
-                        )}
+                        </div>
                       </div>
+                      <button
+                        onClick={() => removeItem(item.id)}
+                        className="p-1 text-[#B5403A]"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
-                    <button
-                      onClick={() => removeItem(item.id)}
-                      className="text-red-500 hover:text-red-600 p-1"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  </div>
 
-                  <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-gray-900">
-                      ₹{(item.price * item.quantity).toLocaleString('en-IN')}
-                    </span>
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                        className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
-                      >
-                        <Minus className="w-4 h-4" />
-                      </button>
-                      <span className="font-semibold text-gray-900 w-8 text-center">
-                        {item.quantity}
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-[15px] font-bold text-[#1C1C1C]">
+                        ₹{(item.price * item.quantity).toLocaleString('en-IN')}
                       </span>
-                      <button
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                        className="w-8 h-8 rounded-full bg-lime-accent flex items-center justify-center hover:bg-lime-accent/90 transition-colors"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-3">
+                        <motion.button
+                          {...tapScale}
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          className="w-8 h-8 rounded-full bg-white border border-[#EDECEA] flex items-center justify-center"
+                        >
+                          <Minus className="w-3.5 h-3.5 text-[#1C1C1C]" />
+                        </motion.button>
+                        <span className="text-[15px] font-semibold text-[#1C1C1C] w-6 text-center tabular-nums">
+                          {item.quantity}
+                        </span>
+                        <motion.button
+                          {...tapScale}
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          className="w-8 h-8 rounded-full bg-[#2D5A3D] flex items-center justify-center"
+                        >
+                          <Plus className="w-3.5 h-3.5 text-white" />
+                        </motion.button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </motion.div>
       </div>
 
       {/* Checkout Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-4 pb-24">
-        <div className="max-w-md mx-auto">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-gray-600">Total Amount</span>
-            <span className="text-3xl font-bold text-gray-900">
-              ₹{totalAmount.toLocaleString('en-IN')}
-            </span>
+      <div className="fixed bottom-[88px] left-0 right-0 z-40">
+        <div className="max-w-md mx-auto px-5 pb-4">
+          <div className="bg-[#2D5A3D] rounded-[12px] p-4 flex items-center justify-between"
+               style={{ boxShadow: 'var(--shadow-floating)' }}>
+            <div>
+              <p className="text-[12px] text-white/60">Total</p>
+              <p className="text-[20px] font-bold text-white tabular-nums">
+                ₹{totalAmount.toLocaleString('en-IN')}
+              </p>
+            </div>
+            <motion.button
+              {...tapScale}
+              onClick={() => router.push('/guest/checkout')}
+              className="h-11 px-6 rounded-[8px] bg-[#C9A96E] text-white text-[15px] font-semibold"
+            >
+              Checkout
+            </motion.button>
           </div>
-          <Button
-            onClick={() => router.push('/guest/checkout')}
-            className="w-full h-14 bg-lime-accent hover:bg-lime-accent/90 text-black text-lg font-semibold rounded-full"
-          >
-            Proceed to Checkout
-          </Button>
         </div>
       </div>
     </div>

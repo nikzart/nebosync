@@ -1,56 +1,61 @@
 @import "tailwindcss";
 
 :root {
-  /* Light Mode - Default (for Guest Interface) */
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Light Mode - Guest Interface: Deep Forest + Warm Gold */
+  --background: #FAF9F6;
+  --foreground: #1C1C1C;
   --card: #ffffff;
-  --card-foreground: #171717;
+  --card-foreground: #1C1C1C;
   --popover: #ffffff;
-  --popover-foreground: #171717;
-  --primary: #c4b5fd;
-  --primary-foreground: #1f1f1f;
-  --secondary: #f3f4f6;
-  --secondary-foreground: #1f1f1f;
-  --muted: #f3f4f6;
-  --muted-foreground: #6b7280;
-  --accent: #cdff57;
-  --accent-foreground: #1f1f1f;
-  --destructive: #ef4444;
+  --popover-foreground: #1C1C1C;
+  --primary: #2D5A3D;
+  --primary-foreground: #ffffff;
+  --secondary: #F2F0EC;
+  --secondary-foreground: #1C1C1C;
+  --muted: #F2F0EC;
+  --muted-foreground: #6B6B6B;
+  --accent: #C9A96E;
+  --accent-foreground: #1C1C1C;
+  --destructive: #B5403A;
   --destructive-foreground: #ffffff;
-  --border: #e5e7eb;
-  --input: #e5e7eb;
-  --ring: #c4b5fd;
-  --radius: 1.5rem;
+  --border: #EDECEA;
+  --input: #EDECEA;
+  --ring: #2D5A3D;
+  --radius: 0.75rem;
 
-  /* Pastel colors for guest interface */
-  --pastel-purple: #c4b5fd;
-  --pastel-lavender: #e0d7ff;
-  --lime-accent: #cdff57;
-  --soft-gray: #f9fafb;
+  /* Guest design tokens */
+  --guest-bg: #FAF9F6;
+  --guest-surface: #ffffff;
+  --guest-text: #1C1C1C;
+  --guest-text-secondary: #6B6B6B;
+  --guest-text-tertiary: #A1A1A1;
+  --guest-border: #EDECEA;
+  --guest-border-strong: #E0DFDC;
+  --guest-accent: #2D5A3D;
+  --guest-accent-light: #EBF3ED;
+  --guest-accent-dark: #1E3F2A;
+  --guest-gold: #C9A96E;
+  --guest-gold-light: #F5F0E4;
+  --guest-gold-dark: #A8893D;
 
-  /* Gradient colors */
-  --gradient-purple-start: #c4b5fd;
-  --gradient-purple-end: #e0d7ff;
-  --gradient-pink-start: #ff6b9d;
-  --gradient-pink-end: #ff8cb4;
+  /* Status colors */
+  --guest-success: #2D5A3D;
+  --guest-success-bg: #EBF3ED;
+  --guest-warning: #C9A96E;
+  --guest-warning-bg: #F5F0E4;
+  --guest-error: #B5403A;
+  --guest-error-bg: #FDF1F0;
+  --guest-info: #4A7EC4;
+  --guest-info-bg: #EDF3FA;
 
-  /* Enhanced shadows */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-
-  /* Border radius scale */
-  --radius-sm: 0.75rem;
-  --radius-md: 1rem;
-  --radius-lg: 1.5rem;
-  --radius-xl: 2rem;
-  --radius-2xl: 2.5rem;
+  /* Shadows */
+  --shadow-card: 0 1px 3px 0 rgba(0,0,0,0.04), 0 1px 2px -1px rgba(0,0,0,0.03);
+  --shadow-elevated: 0 4px 12px 0 rgba(0,0,0,0.06), 0 1px 3px 0 rgba(0,0,0,0.04);
+  --shadow-floating: 0 12px 32px 0 rgba(0,0,0,0.08), 0 2px 6px 0 rgba(0,0,0,0.04);
 }
 
 [data-theme="dark"] {
-  /* Dark Mode (for Admin/Staff Interface) */
+  /* Dark Mode (for Admin/Staff Interface) — UNTOUCHED */
   --background: #0a0a0a;
   --foreground: #ededed;
   --card: #1a1a1a;
@@ -107,6 +112,27 @@
 
 body {
   @apply text-foreground;
-  background: linear-gradient(135deg, #f9f5ff 0%, #ffffff 50%, #f9f5ff 100%);
+  background: var(--background);
   font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* Shimmer animation for loading skeletons */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #EDECEA 25%, #FAF9F6 50%, #EDECEA 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }

@@ -11,65 +11,62 @@ interface ProfileInfoProps {
   floor?: number
 }
 
-export function ProfileInfo({ name, email, phone, roomNumber, roomType, floor }: ProfileInfoProps) {
+export function ProfileInfo({ email, phone, roomNumber, roomType, floor }: ProfileInfoProps) {
   return (
-    <div className="bg-white rounded-3xl p-6 shadow-sm">
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">Personal Information</h2>
+    <div className="bg-white rounded-[12px] p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
+      <h2 className="text-[16px] font-semibold text-[#1C1C1C] mb-4">Personal Information</h2>
 
-      <div className="space-y-4">
-        {/* Email */}
+      <div className="space-y-3.5">
         {email && (
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-pastel-lavender flex items-center justify-center">
-              <Mail className="w-5 h-5 text-pastel-purple" />
+            <div className="w-9 h-9 rounded-[8px] bg-[#EBF3ED] flex items-center justify-center">
+              <Mail className="w-4 h-4 text-[#2D5A3D]" />
             </div>
             <div>
-              <p className="text-xs text-gray-500">Email</p>
-              <p className="text-sm font-medium text-gray-900">{email}</p>
+              <p className="text-[11px] text-[#A1A1A1] uppercase tracking-wide">Email</p>
+              <p className="text-[14px] font-medium text-[#1C1C1C]">{email}</p>
             </div>
           </div>
         )}
 
-        {/* Phone */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-pastel-lavender flex items-center justify-center">
-            <Phone className="w-5 h-5 text-pastel-purple" />
+          <div className="w-9 h-9 rounded-[8px] bg-[#EBF3ED] flex items-center justify-center">
+            <Phone className="w-4 h-4 text-[#2D5A3D]" />
           </div>
           <div>
-            <p className="text-xs text-gray-500">Phone</p>
-            <p className="text-sm font-medium text-gray-900">{phone}</p>
+            <p className="text-[11px] text-[#A1A1A1] uppercase tracking-wide">Phone</p>
+            <p className="text-[14px] font-medium text-[#1C1C1C]">{phone}</p>
           </div>
         </div>
 
-        {/* Room Info */}
         {roomNumber && (
           <>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-pastel-lavender flex items-center justify-center">
-                <Home className="w-5 h-5 text-pastel-purple" />
+              <div className="w-9 h-9 rounded-[8px] bg-[#EBF3ED] flex items-center justify-center">
+                <Home className="w-4 h-4 text-[#2D5A3D]" />
               </div>
               <div>
-                <p className="text-xs text-gray-500">Room Number</p>
-                <p className="text-sm font-medium text-gray-900">{roomNumber}</p>
+                <p className="text-[11px] text-[#A1A1A1] uppercase tracking-wide">Room Number</p>
+                <p className="text-[14px] font-medium text-[#1C1C1C]">{roomNumber}</p>
               </div>
             </div>
 
             {roomType && (
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-pastel-lavender flex items-center justify-center">
-                  <Building className="w-5 h-5 text-pastel-purple" />
+                <div className="w-9 h-9 rounded-[8px] bg-[#F5F0E4] flex items-center justify-center">
+                  <Building className="w-4 h-4 text-[#C9A96E]" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Room Type</p>
-                  <p className="text-sm font-medium text-gray-900">{roomType}</p>
+                  <p className="text-[11px] text-[#A1A1A1] uppercase tracking-wide">Room Type</p>
+                  <p className="text-[14px] font-medium text-[#1C1C1C]">{roomType}</p>
                 </div>
               </div>
             )}
 
             {floor && (
-              <div className="ml-13">
-                <p className="text-xs text-gray-500">Floor</p>
-                <p className="text-sm font-medium text-gray-900">Floor {floor}</p>
+              <div className="ml-12">
+                <p className="text-[11px] text-[#A1A1A1] uppercase tracking-wide">Floor</p>
+                <p className="text-[14px] font-medium text-[#1C1C1C]">Floor {floor}</p>
               </div>
             )}
           </>

@@ -4,7 +4,9 @@ import { use } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, Download } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
+import { motion } from 'framer-motion'
+import { tapScale } from '@/lib/motion'
+import { cn } from '@/lib/utils'
 
 interface InvoiceItem {
   id: string
@@ -26,9 +28,7 @@ interface Invoice {
     name: string
     email: string | null
     phone: string
-    room: {
-      roomNumber: string
-    } | null
+    room: { roomNumber: string } | null
   }
   invoiceItems: InvoiceItem[]
 }
@@ -58,55 +58,52 @@ export default function GuestInvoicePage({ params }: { params: Promise<{ id: str
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-pastel-purple border-t-transparent rounded-full" />
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin w-5 h-5 border-2 border-[#2D5A3D] border-t-transparent rounded-full" />
       </div>
     )
   }
 
   if (!invoice) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 flex items-center justify-center px-6">
-        <div className="text-center">
-          <p className="text-gray-500">Invoice not found</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center px-8">
+        <p className="text-[14px] text-[#6B6B6B]">Invoice not found</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 pb-24">
+    <div className="min-h-screen">
       {/* Header */}
-      <header className="sticky top-0 bg-white/80 backdrop-blur-md z-10 px-6 py-4 border-b border-gray-100">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+      <header className="sticky top-0 bg-[#FAF9F6]/90 backdrop-blur-lg z-10 px-5 pt-3 pb-3 border-b border-[#EDECEA]">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
             <button
               onClick={() => router.back()}
-              className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+              className="w-9 h-9 rounded-[8px] bg-white flex items-center justify-center"
+              style={{ boxShadow: 'var(--shadow-card)' }}
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-4 h-4 text-[#1C1C1C]" />
             </button>
-            <h1 className="text-2xl font-semibold text-gray-900">Invoice</h1>
+            <h1 className="text-[18px] font-semibold text-[#1C1C1C]">Invoice</h1>
           </div>
-          <Button
+          <motion.button
+            {...tapScale}
             onClick={downloadInvoice}
-            className="bg-pastel-purple hover:bg-pastel-purple/90 gap-2"
+            className="flex items-center gap-1.5 text-[13px] font-medium text-[#2D5A3D]"
           >
             <Download className="w-4 h-4" />
             Download PDF
-          </Button>
+          </motion.button>
         </div>
       </header>
 
-      <div className="px-6 py-6">
-        {/* Invoice Card */}
-        <div className="bg-white rounded-3xl p-8 shadow-sm">
+      <div className="px-5 py-4">
+        <div className="bg-white rounded-[12px] p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
           {/* Invoice Header */}
-          <div className="mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              {invoice.invoiceNumber}
-            </h2>
-            <p className="text-sm text-gray-500">
+          <div className="mb-6">
+            <h2 className="text-[20px] font-bold text-[#1C1C1C] mb-1">{invoice.invoiceNumber}</h2>
+            <p className="text-[13px] text-[#6B6B6B]">
               {new Date(invoice.createdAt).toLocaleDateString('en-IN', {
                 day: 'numeric',
                 month: 'long',
@@ -115,29 +112,29 @@ export default function GuestInvoicePage({ params }: { params: Promise<{ id: str
             </p>
           </div>
 
-          {/* Guest Info */}
-          <div className="mb-8 p-4 bg-purple-50 rounded-2xl">
-            <h3 className="text-sm font-semibold text-gray-900 mb-2">Billed To</h3>
-            <p className="text-gray-900">{invoice.guest.name}</p>
+          {/* Billed To */}
+          <div className="mb-6 p-3.5 bg-[#FAF9F6] rounded-[8px]">
+            <p className="text-[11px] text-[#A1A1A1] uppercase tracking-wide mb-1">Billed To</p>
+            <p className="text-[14px] font-medium text-[#1C1C1C]">{invoice.guest.name}</p>
             {invoice.guest.room && (
-              <p className="text-sm text-gray-600">Room {invoice.guest.room.roomNumber}</p>
+              <p className="text-[13px] text-[#6B6B6B]">Room {invoice.guest.room.roomNumber}</p>
             )}
-            <p className="text-sm text-gray-600">{invoice.guest.phone}</p>
+            <p className="text-[13px] text-[#6B6B6B]">{invoice.guest.phone}</p>
           </div>
 
           {/* Items */}
-          <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">Items</h3>
-            <div className="space-y-3">
+          <div className="mb-5">
+            <p className="text-[11px] text-[#A1A1A1] uppercase tracking-wide mb-3">Items</p>
+            <div className="space-y-2.5">
               {invoice.invoiceItems.map((item) => (
                 <div key={item.id} className="flex justify-between items-start">
                   <div className="flex-1">
-                    <p className="text-gray-900">{item.description}</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-[14px] text-[#1C1C1C]">{item.description}</p>
+                    <p className="text-[12px] text-[#A1A1A1]">
                       {item.quantity} × ₹{item.unitPrice.toLocaleString('en-IN')}
                     </p>
                   </div>
-                  <p className="font-semibold text-gray-900">
+                  <p className="text-[14px] font-semibold text-[#1C1C1C] tabular-nums">
                     ₹{item.total.toLocaleString('en-IN')}
                   </p>
                 </div>
@@ -146,32 +143,29 @@ export default function GuestInvoicePage({ params }: { params: Promise<{ id: str
           </div>
 
           {/* Totals */}
-          <div className="border-t border-gray-200 pt-4 space-y-2">
-            <div className="flex justify-between text-gray-600">
-              <span>Subtotal</span>
-              <span>₹{invoice.subtotal.toLocaleString('en-IN')}</span>
+          <div className="border-t border-[#EDECEA] pt-3 space-y-1.5">
+            <div className="flex justify-between text-[14px]">
+              <span className="text-[#6B6B6B]">Subtotal</span>
+              <span className="text-[#1C1C1C] tabular-nums">₹{invoice.subtotal.toLocaleString('en-IN')}</span>
             </div>
-            <div className="flex justify-between text-gray-600">
-              <span>Tax (18% GST)</span>
-              <span>₹{invoice.tax.toLocaleString('en-IN')}</span>
+            <div className="flex justify-between text-[14px]">
+              <span className="text-[#6B6B6B]">Tax (GST)</span>
+              <span className="text-[#1C1C1C] tabular-nums">₹{invoice.tax.toLocaleString('en-IN')}</span>
             </div>
-            <div className="flex justify-between text-xl font-bold text-gray-900 pt-2 border-t border-gray-200">
+            <div className="flex justify-between text-[18px] font-bold text-[#1C1C1C] pt-2 border-t border-[#EDECEA]">
               <span>Total</span>
-              <span>₹{invoice.total.toLocaleString('en-IN')}</span>
+              <span className="tabular-nums">₹{invoice.total.toLocaleString('en-IN')}</span>
             </div>
           </div>
 
           {/* Status Badge */}
-          <div className="mt-6">
-            <span
-              className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${
-                invoice.status === 'PAID'
-                  ? 'bg-green-100 text-green-700'
-                  : invoice.status === 'PENDING'
-                  ? 'bg-yellow-100 text-yellow-700'
-                  : 'bg-gray-100 text-gray-700'
-              }`}
-            >
+          <div className="mt-4">
+            <span className={cn(
+              'inline-block px-3 py-1.5 rounded-full text-[12px] font-semibold',
+              invoice.status === 'PAID' && 'bg-[#EBF3ED] text-[#2D5A3D]',
+              invoice.status === 'PENDING' && 'bg-[#F5F0E4] text-[#A8893D]',
+              invoice.status !== 'PAID' && invoice.status !== 'PENDING' && 'bg-[#F2F0EC] text-[#6B6B6B]'
+            )}>
               {invoice.status}
             </span>
           </div>
