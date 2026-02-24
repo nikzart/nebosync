@@ -18,7 +18,6 @@ import {
   UserPlus,
   ArrowRight,
 } from 'lucide-react'
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts'
 
 interface DashboardData {
   orders: {
@@ -126,15 +125,20 @@ export default function StaffDashboard() {
     )
   }
 
-  const pieData = data
-    ? [
-        { name: 'Pending', value: data.orders.pending, color: STATUS_COLORS.PENDING },
-        { name: 'Accepted', value: data.orders.accepted, color: STATUS_COLORS.ACCEPTED },
-        { name: 'In Progress', value: data.orders.inProgress, color: STATUS_COLORS.IN_PROGRESS },
-        { name: 'Completed', value: data.orders.completed, color: STATUS_COLORS.COMPLETED },
-        { name: 'Cancelled', value: data.orders.cancelled, color: STATUS_COLORS.CANCELLED },
-      ].filter((d) => d.value > 0)
-    : []
+  const activeOrders =
+    (data?.orders.pending ?? 0) +
+    (data?.orders.accepted ?? 0) +
+    (data?.orders.inProgress ?? 0)
+
+  const pipelineStages = [
+    { key: 'PENDING', count: data?.orders.pending ?? 0 },
+    { key: 'ACCEPTED', count: data?.orders.accepted ?? 0 },
+    { key: 'IN_PROGRESS', count: data?.orders.inProgress ?? 0 },
+    { key: 'COMPLETED', count: data?.orders.completed ?? 0 },
+    { key: 'CANCELLED', count: data?.orders.cancelled ?? 0 },
+  ]
+
+  const maxStageCount = Math.max(...pipelineStages.map((s) => s.count), 1)
 
   return (
     <div className="p-8 space-y-6">
@@ -218,50 +222,65 @@ export default function StaffDashboard() {
 
       {/* Two-column: Pie Chart + Recent Orders */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Order Status Distribution */}
+        {/* Order Pipeline */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5" />
-              Order Status Distribution
-            </CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5" />
+                Order Pipeline
+              </CardTitle>
+              <p className="text-xs text-muted-foreground mt-1">
+                {activeOrders} active order{activeOrders !== 1 ? 's' : ''}
+              </p>
+            </div>
+            <Link
+              href="/staff/orders"
+              className="text-sm text-primary hover:underline flex items-center gap-1"
+            >
+              View all <ArrowRight className="w-3 h-3" />
+            </Link>
           </CardHeader>
           <CardContent>
-            {pieData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={280}>
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={3}
-                    dataKey="value"
+            <div className="space-y-2">
+              {pipelineStages.map((stage) => {
+                const barPercent = maxStageCount > 0 ? (stage.count / maxStageCount) * 100 : 0
+                const isPending = stage.key === 'PENDING' && stage.count > 0
+                return (
+                  <Link
+                    key={stage.key}
+                    href={`/staff/orders?status=${stage.key}`}
+                    className={`flex items-center gap-3 p-3 rounded-lg border transition-colors hover:bg-muted/50 ${
+                      isPending ? 'border-yellow-500/30 bg-yellow-500/5' : ''
+                    }`}
                   >
-                    {pieData.map((entry, index) => (
-                      <Cell key={index} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value: number) => [value, 'Orders']}
-                    contentStyle={{
-                      backgroundColor: 'var(--card)',
-                      border: '1px solid var(--border)',
-                      borderRadius: '0.5rem',
-                      color: 'var(--foreground)',
-                    }}
-                    itemStyle={{ color: 'var(--foreground)' }}
-                    labelStyle={{ color: 'var(--muted-foreground)' }}
-                  />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-[280px] flex items-center justify-center text-muted-foreground">
-                No order data available
-              </div>
-            )}
+                    <StatusIcon status={stage.key} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-sm font-medium">
+                          {STATUS_LABELS[stage.key]}
+                        </span>
+                        <span
+                          className="text-sm font-bold tabular-nums"
+                          style={{ color: STATUS_COLORS[stage.key] }}
+                        >
+                          {stage.count}
+                        </span>
+                      </div>
+                      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{
+                            width: `${barPercent}%`,
+                            backgroundColor: STATUS_COLORS[stage.key],
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
           </CardContent>
         </Card>
 

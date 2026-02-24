@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import {
@@ -67,7 +68,10 @@ interface Order {
 
 export default function StaffOrdersPage() {
   const queryClient = useQueryClient()
-  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const searchParams = useSearchParams()
+  const [statusFilter, setStatusFilter] = useState<string>(
+    searchParams.get('status') ?? 'all'
+  )
 
   // Helper function to get invoice from order
   const getOrderInvoice = (order: Order) => {
