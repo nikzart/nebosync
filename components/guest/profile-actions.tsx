@@ -18,7 +18,7 @@ export function ProfileActions() {
       try {
         await signOut({ redirect: false })
         toast.success('Logged out successfully')
-        router.push('/login')
+        router.push('/guest-login')
       } catch {
         toast.error('Failed to logout')
         setIsLoggingOut(false)

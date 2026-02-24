@@ -128,6 +128,16 @@ body {
   animation: shimmer 1.5s ease-in-out infinite;
 }
 
+/* Staff login — animated mesh grid */
+@keyframes mesh-drift {
+  0%   { transform: translate(0, 0); }
+  50%  { transform: translate(-30px, -20px); }
+  100% { transform: translate(0, 0); }
+}
+.animate-mesh-drift {
+  animation: mesh-drift 20s ease-in-out infinite;
+}
+
 /* Hide scrollbar utility */
 .scrollbar-hide {
   -ms-overflow-style: none;

@@ -11,7 +11,7 @@ export default async function GuestProfilePage() {
   const session = await auth()
 
   if (!session || session.user.role !== 'GUEST') {
-    redirect('/login')
+    redirect('/guest-login')
   }
 
   const guest = await prisma.guest.findUnique({
@@ -29,7 +29,7 @@ export default async function GuestProfilePage() {
   })
 
   if (!guest) {
-    redirect('/login')
+    redirect('/guest-login')
   }
 
   const totalSpent = await prisma.order.aggregate({

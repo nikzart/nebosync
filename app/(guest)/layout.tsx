@@ -11,7 +11,7 @@ export default async function GuestLayout({
   const session = await auth()
 
   if (!session || session.user.role !== 'GUEST') {
-    redirect('/login')
+    redirect('/guest-login')
   }
 
   return (
