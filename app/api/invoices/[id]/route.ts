@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
+import { logActivity } from '@/lib/activity-log'
 
 export async function GET(
   request: NextRequest,
@@ -105,6 +106,20 @@ export async function PUT(
       },
     })
 
+    const desc = status === 'PAID'
+      ? `Marked invoice #${invoice.invoiceNumber} as paid for ${invoice.guest.name}`
+      : status === 'CANCELLED'
+        ? `Cancelled invoice #${invoice.invoiceNumber} for ${invoice.guest.name}`
+        : `Updated invoice #${invoice.invoiceNumber}`
+
+    logActivity({
+      userId: session.user.id,
+      action: 'STATUS_CHANGE',
+      entity: 'invoice',
+      entityId: id,
+      description: desc,
+    })
+
     return NextResponse.json(invoice)
   } catch (error) {
     console.error('Error updating invoice:', error)
@@ -156,6 +171,20 @@ export async function PATCH(
           },
         },
       },
+    })
+
+    const patchDesc = status === 'PAID'
+      ? `Marked invoice #${invoice.invoiceNumber} as paid for ${invoice.guest.name}`
+      : status === 'CANCELLED'
+        ? `Cancelled invoice #${invoice.invoiceNumber} for ${invoice.guest.name}`
+        : `Updated invoice #${invoice.invoiceNumber}`
+
+    logActivity({
+      userId: session.user.id,
+      action: 'STATUS_CHANGE',
+      entity: 'invoice',
+      entityId: id,
+      description: patchDesc,
     })
 
     return NextResponse.json(invoice)

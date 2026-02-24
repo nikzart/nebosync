@@ -15,8 +15,11 @@ import {
   Palette,
   Save,
   Settings as SettingsIcon,
+  FileText,
   Plus,
-  Trash2
+  Trash2,
+  Upload,
+  X
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTheme } from 'next-themes'
@@ -44,6 +47,10 @@ interface HotelSettings {
   taxRegistration: string | null
   invoicePrefix: string
   invoiceFooter: string
+  invoiceAccentColor: string
+  paymentTerms: string
+  currencySymbol: string
+  showBankDetails: boolean
   bankName: string | null
   accountNumber: string | null
   ifscCode: string | null
@@ -267,7 +274,7 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="hotel" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="hotel" className="gap-2">
             <Hotel className="w-4 h-4" />
             <span className="hidden sm:inline">Hotel Info</span>
@@ -275,6 +282,10 @@ export default function SettingsPage() {
           <TabsTrigger value="billing" className="gap-2">
             <SettingsIcon className="w-4 h-4" />
             <span className="hidden sm:inline">Billing & Tax</span>
+          </TabsTrigger>
+          <TabsTrigger value="invoice" className="gap-2">
+            <FileText className="w-4 h-4" />
+            <span className="hidden sm:inline">Invoice</span>
           </TabsTrigger>
           <TabsTrigger value="wifi" className="gap-2">
             <Wifi className="w-4 h-4" />
@@ -443,44 +454,6 @@ export default function SettingsPage() {
                     </div>
                   </div>
 
-                  {/* Invoice Settings */}
-                  <div className="space-y-4 p-4 border rounded-lg">
-                    <h3 className="text-lg font-semibold">Invoice Settings</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm font-medium mb-2 block">Invoice Prefix</label>
-                        <Input
-                          value={editingHotelInfo?.invoicePrefix ?? hotelSettings?.invoicePrefix ?? ''}
-                          onChange={(e) =>
-                            setEditingHotelInfo({
-                              ...hotelSettings,
-                              ...editingHotelInfo,
-                              invoicePrefix: e.target.value,
-                            })
-                          }
-                          placeholder="INV"
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Example: INV-20231225-1234
-                        </p>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Invoice Footer Text</label>
-                      <Input
-                        value={editingHotelInfo?.invoiceFooter ?? hotelSettings?.invoiceFooter ?? ''}
-                        onChange={(e) =>
-                          setEditingHotelInfo({
-                            ...hotelSettings,
-                            ...editingHotelInfo,
-                            invoiceFooter: e.target.value,
-                          })
-                        }
-                        placeholder="Thank you message..."
-                      />
-                    </div>
-                  </div>
-
                   {/* Banking Details */}
                   <div className="space-y-4 p-4 border rounded-lg">
                     <h3 className="text-lg font-semibold">Banking Details</h3>
@@ -548,6 +521,269 @@ export default function SettingsPage() {
                   >
                     <Save className="w-4 h-4" />
                     Save Billing Configuration
+                  </Button>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Invoice Settings */}
+        <TabsContent value="invoice">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Invoice Settings
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {hotelLoading ? (
+                <p className="text-muted-foreground">Loading invoice settings...</p>
+              ) : (
+                <>
+                  {/* Logo Upload */}
+                  <div className="space-y-4 p-4 border rounded-lg">
+                    <h3 className="text-lg font-semibold">Hotel Logo</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Logo will appear on the top-left of invoice PDFs. Recommended: PNG or JPG, max 500KB. SVG is not supported in PDF invoices.
+                    </p>
+                    <div className="flex items-center gap-4">
+                      {(editingHotelInfo?.logoUrl ?? hotelSettings?.logoUrl) ? (
+                        <div className="relative">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={editingHotelInfo?.logoUrl ?? hotelSettings?.logoUrl ?? ''}
+                            alt="Hotel logo"
+                            className="h-20 max-w-[200px] rounded border object-contain"
+                          />
+                          <button
+                            onClick={() =>
+                              setEditingHotelInfo({ ...hotelSettings, ...editingHotelInfo, logoUrl: null })
+                            }
+                            className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-destructive text-white flex items-center justify-center"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="h-16 w-24 rounded border border-dashed flex items-center justify-center text-muted-foreground">
+                          <Upload className="w-5 h-5" />
+                        </div>
+                      )}
+                      <div>
+                        <label className="cursor-pointer">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0]
+                              if (!file) return
+                              if (file.size > 2097152) {
+                                toast.error('Logo must be under 2MB')
+                                return
+                              }
+                              // Resize logo to fit invoice (max 200px height, PNG output)
+                              const reader = new FileReader()
+                              reader.onload = (ev) => {
+                                const img = new window.Image()
+                                img.onload = () => {
+                                  const maxH = 200
+                                  const maxW = 400
+                                  let w = img.width
+                                  let h = img.height
+                                  if (h > maxH) { w = w * (maxH / h); h = maxH }
+                                  if (w > maxW) { h = h * (maxW / w); w = maxW }
+                                  const canvas = document.createElement('canvas')
+                                  canvas.width = w
+                                  canvas.height = h
+                                  const ctx = canvas.getContext('2d')
+                                  if (!ctx) return
+                                  ctx.drawImage(img, 0, 0, w, h)
+                                  const resized = canvas.toDataURL('image/png')
+                                  setEditingHotelInfo({
+                                    ...hotelSettings,
+                                    ...editingHotelInfo,
+                                    logoUrl: resized,
+                                  })
+                                }
+                                img.src = ev.target?.result as string
+                              }
+                              reader.readAsDataURL(file)
+                            }}
+                          />
+                          <span className="text-sm font-medium text-primary hover:underline cursor-pointer">
+                            Upload Logo
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Invoice Numbering */}
+                  <div className="space-y-4 p-4 border rounded-lg">
+                    <h3 className="text-lg font-semibold">Invoice Numbering</h3>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Invoice Prefix</label>
+                      <Input
+                        value={editingHotelInfo?.invoicePrefix ?? hotelSettings?.invoicePrefix ?? ''}
+                        onChange={(e) =>
+                          setEditingHotelInfo({
+                            ...hotelSettings,
+                            ...editingHotelInfo,
+                            invoicePrefix: e.target.value,
+                          })
+                        }
+                        placeholder="INV"
+                      />
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Preview: {editingHotelInfo?.invoicePrefix ?? hotelSettings?.invoicePrefix ?? 'INV'}-{new Date().toISOString().slice(0, 10).replace(/-/g, '')}-XXXX
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Branding */}
+                  <div className="space-y-4 p-4 border rounded-lg">
+                    <h3 className="text-lg font-semibold">Branding</h3>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Accent Color</label>
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="color"
+                          value={editingHotelInfo?.invoiceAccentColor ?? hotelSettings?.invoiceAccentColor ?? '#2D5A3D'}
+                          onChange={(e) =>
+                            setEditingHotelInfo({
+                              ...hotelSettings,
+                              ...editingHotelInfo,
+                              invoiceAccentColor: e.target.value,
+                            })
+                          }
+                          className="w-10 h-10 rounded border cursor-pointer"
+                        />
+                        <Input
+                          value={editingHotelInfo?.invoiceAccentColor ?? hotelSettings?.invoiceAccentColor ?? '#2D5A3D'}
+                          onChange={(e) =>
+                            setEditingHotelInfo({
+                              ...hotelSettings,
+                              ...editingHotelInfo,
+                              invoiceAccentColor: e.target.value,
+                            })
+                          }
+                          className="w-32"
+                        />
+                      </div>
+                      <div className="flex gap-2 mt-3">
+                        {[
+                          { label: 'Forest Green', color: '#2D5A3D' },
+                          { label: 'Navy', color: '#1a365d' },
+                          { label: 'Burgundy', color: '#7B2D3D' },
+                          { label: 'Black', color: '#1C1C1C' },
+                        ].map((preset) => (
+                          <button
+                            key={preset.color}
+                            onClick={() =>
+                              setEditingHotelInfo({
+                                ...hotelSettings,
+                                ...editingHotelInfo,
+                                invoiceAccentColor: preset.color,
+                              })
+                            }
+                            className="flex items-center gap-2 px-3 py-1.5 rounded border text-xs hover:bg-muted transition-colors"
+                          >
+                            <span
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: preset.color }}
+                            />
+                            {preset.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Terms & Notes */}
+                  <div className="space-y-4 p-4 border rounded-lg">
+                    <h3 className="text-lg font-semibold">Terms & Notes</h3>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Payment Terms</label>
+                      <Input
+                        value={editingHotelInfo?.paymentTerms ?? hotelSettings?.paymentTerms ?? ''}
+                        onChange={(e) =>
+                          setEditingHotelInfo({
+                            ...hotelSettings,
+                            ...editingHotelInfo,
+                            paymentTerms: e.target.value,
+                          })
+                        }
+                        placeholder="Due upon checkout"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Invoice Footer Text</label>
+                      <Input
+                        value={editingHotelInfo?.invoiceFooter ?? hotelSettings?.invoiceFooter ?? ''}
+                        onChange={(e) =>
+                          setEditingHotelInfo({
+                            ...hotelSettings,
+                            ...editingHotelInfo,
+                            invoiceFooter: e.target.value,
+                          })
+                        }
+                        placeholder="Thank you for your stay!"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Display Options */}
+                  <div className="space-y-4 p-4 border rounded-lg">
+                    <h3 className="text-lg font-semibold">Display Options</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Currency Symbol</label>
+                        <Input
+                          value={editingHotelInfo?.currencySymbol ?? hotelSettings?.currencySymbol ?? '₹'}
+                          onChange={(e) =>
+                            setEditingHotelInfo({
+                              ...hotelSettings,
+                              ...editingHotelInfo,
+                              currencySymbol: e.target.value,
+                            })
+                          }
+                          placeholder="₹"
+                          className="w-24"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between py-2">
+                      <div>
+                        <p className="font-medium text-sm">Show Bank Details on Invoice</p>
+                        <p className="text-xs text-muted-foreground">
+                          Display bank payment information at the bottom of PDF invoices
+                        </p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={editingHotelInfo?.showBankDetails ?? hotelSettings?.showBankDetails ?? true}
+                        onChange={(e) =>
+                          setEditingHotelInfo({
+                            ...hotelSettings,
+                            ...editingHotelInfo,
+                            showBankDetails: e.target.checked,
+                          })
+                        }
+                        className="w-5 h-5"
+                      />
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={() => handleSaveHotelInfo('invoice_settings')}
+                    disabled={updateHotelMutation.isPending || !editingHotelInfo}
+                    className="gap-2"
+                  >
+                    <Save className="w-4 h-4" />
+                    Save Invoice Settings
                   </Button>
                 </>
               )}

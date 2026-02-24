@@ -1,230 +1,5 @@
 import React from 'react'
-import { Document, Page, Text, View, StyleSheet, renderToBuffer } from '@react-pdf/renderer'
-
-const styles = StyleSheet.create({
-  page: {
-    padding: 50,
-    fontSize: 10,
-    fontFamily: 'Helvetica',
-    backgroundColor: '#FFFFFF',
-  },
-  // Header Styles
-  header: {
-    marginBottom: 30,
-    borderBottom: '3px solid #4CAF50',
-    paddingBottom: 15,
-  },
-  hotelName: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#2E7D32',
-    textAlign: 'center',
-    marginBottom: 8,
-    letterSpacing: 1,
-  },
-  headerSubtext: {
-    fontSize: 11,
-    textAlign: 'center',
-    color: '#666',
-    marginBottom: 3,
-  },
-  invoiceTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginTop: 10,
-    color: '#333',
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-  },
-  // Info Row Styles
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 25,
-  },
-  infoBox: {
-    width: '48%',
-  },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    textTransform: 'uppercase',
-    color: '#2E7D32',
-    borderBottom: '2px solid #4CAF50',
-    paddingBottom: 5,
-  },
-  infoLine: {
-    flexDirection: 'row',
-    marginBottom: 5,
-  },
-  infoLabel: {
-    width: '35%',
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: '#555',
-  },
-  infoValue: {
-    width: '65%',
-    fontSize: 10,
-    color: '#000',
-  },
-  // Table Styles
-  table: {
-    marginTop: 20,
-    marginBottom: 20,
-  },
-  tableHeader: {
-    flexDirection: 'row',
-    backgroundColor: '#4CAF50',
-    padding: 12,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    borderTopLeftRadius: 4,
-    borderTopRightRadius: 4,
-  },
-  tableRow: {
-    flexDirection: 'row',
-    padding: 10,
-    borderBottom: '1px solid #E0E0E0',
-    backgroundColor: '#FFFFFF',
-  },
-  tableRowAlt: {
-    flexDirection: 'row',
-    padding: 10,
-    borderBottom: '1px solid #E0E0E0',
-    backgroundColor: '#F5F5F5',
-  },
-  tableCol1: {
-    width: '50%',
-    fontSize: 10,
-  },
-  tableCol2: {
-    width: '12%',
-    textAlign: 'right',
-    fontSize: 10,
-  },
-  tableCol3: {
-    width: '19%',
-    textAlign: 'right',
-    fontSize: 10,
-  },
-  tableCol4: {
-    width: '19%',
-    textAlign: 'right',
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  // Summary Styles
-  summaryContainer: {
-    marginTop: 20,
-    marginLeft: 'auto',
-    width: '50%',
-    borderTop: '2px solid #E0E0E0',
-    paddingTop: 15,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-    paddingHorizontal: 15,
-  },
-  summaryLabel: {
-    fontSize: 11,
-    color: '#666',
-  },
-  summaryValue: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  totalRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 12,
-    paddingTop: 12,
-    paddingHorizontal: 15,
-    borderTop: '2px solid #4CAF50',
-    backgroundColor: '#F1F8F4',
-    padding: 15,
-    borderRadius: 4,
-  },
-  totalLabel: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#2E7D32',
-  },
-  totalValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2E7D32',
-  },
-  // Status Badge
-  statusBadge: {
-    marginTop: 15,
-    padding: 10,
-    borderRadius: 4,
-    textAlign: 'center',
-    fontSize: 11,
-    fontWeight: 'bold',
-  },
-  statusPending: {
-    backgroundColor: '#FFF9C4',
-    color: '#F57F17',
-  },
-  statusPaid: {
-    backgroundColor: '#C8E6C9',
-    color: '#2E7D32',
-  },
-  // Footer Styles
-  footer: {
-    marginTop: 30,
-    paddingTop: 20,
-    borderTop: '1px solid #E0E0E0',
-  },
-  footerText: {
-    fontSize: 10,
-    textAlign: 'center',
-    color: '#666',
-    marginBottom: 5,
-  },
-  footerNote: {
-    fontSize: 9,
-    textAlign: 'center',
-    color: '#999',
-    marginTop: 15,
-    fontStyle: 'italic',
-  },
-  bankDetails: {
-    marginTop: 15,
-    padding: 12,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 4,
-    borderLeft: '3px solid #4CAF50',
-  },
-  bankTitle: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 8,
-  },
-  bankLine: {
-    fontSize: 9,
-    color: '#666',
-    marginBottom: 3,
-  },
-  vegIndicator: {
-    fontSize: 8,
-    color: '#4CAF50',
-    marginLeft: 5,
-  },
-  nonVegIndicator: {
-    fontSize: 8,
-    color: '#F44336',
-    marginLeft: 5,
-  },
-})
+import { Document, Page, Text, View, Image, StyleSheet, renderToBuffer } from '@react-pdf/renderer'
 
 interface HotelSettings {
   hotelName: string
@@ -232,10 +7,15 @@ interface HotelSettings {
   phone: string
   email: string
   website: string
+  logoUrl: string | null
   taxRate: number
   taxLabel: string
   taxRegistration: string | null
   invoiceFooter: string
+  invoiceAccentColor: string
+  paymentTerms: string
+  currencySymbol: string
+  showBankDetails: boolean
   bankName: string | null
   accountNumber: string | null
   ifscCode: string | null
@@ -269,97 +49,366 @@ interface InvoicePDFProps {
   hotelSettings?: HotelSettings
 }
 
+/** @react-pdf/renderer only supports raster images (PNG, JPG) — not SVG */
+function isRasterImage(url: string | null): boolean {
+  if (!url) return false
+  if (url.startsWith('data:image/svg')) return false
+  return true
+}
+
+function createStyles(accent: string) {
+  return StyleSheet.create({
+    page: {
+      paddingTop: 0,
+      paddingBottom: 40,
+      paddingHorizontal: 50,
+      fontSize: 10,
+      fontFamily: 'Helvetica',
+      backgroundColor: '#FFFFFF',
+      color: '#333333',
+    },
+    // Accent top bar
+    topBar: {
+      height: 4,
+      backgroundColor: accent,
+      marginBottom: 30,
+      marginHorizontal: -50,
+    },
+    // Header
+    headerContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: 20,
+    },
+    headerLeft: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      flex: 1,
+    },
+    logo: {
+      width: 80,
+      height: 80,
+      marginRight: 16,
+      objectFit: 'contain',
+    },
+    headerInfo: {
+      flex: 1,
+    },
+    hotelName: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: accent,
+      letterSpacing: 1.5,
+      marginBottom: 4,
+    },
+    headerDetail: {
+      fontSize: 9,
+      color: '#777777',
+      marginBottom: 2,
+    },
+    headerGstin: {
+      fontSize: 8,
+      color: '#999999',
+      marginTop: 2,
+      fontWeight: 'bold',
+    },
+    // Invoice badge
+    invoiceBadge: {
+      backgroundColor: accent,
+      paddingVertical: 6,
+      paddingHorizontal: 16,
+      borderRadius: 4,
+    },
+    invoiceBadgeText: {
+      fontSize: 9,
+      fontWeight: 'bold',
+      color: '#FFFFFF',
+      letterSpacing: 2,
+      textTransform: 'uppercase',
+    },
+    // Rule
+    rule: {
+      borderBottom: '0.5px solid #e0e0e0',
+      marginVertical: 16,
+    },
+    // Two-column info
+    infoRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 8,
+    },
+    infoCol: {
+      width: '48%',
+    },
+    infoSectionLabel: {
+      fontSize: 8,
+      fontWeight: 'bold',
+      color: accent,
+      textTransform: 'uppercase',
+      letterSpacing: 1.5,
+      marginBottom: 8,
+      borderBottom: `1px solid ${accent}`,
+      paddingBottom: 4,
+    },
+    infoText: {
+      fontSize: 10,
+      color: '#444444',
+      marginBottom: 3,
+    },
+    infoTextBold: {
+      fontSize: 11,
+      fontWeight: 'bold',
+      color: '#1a1a1a',
+      marginBottom: 4,
+    },
+    infoTextLight: {
+      fontSize: 9,
+      color: '#888888',
+      marginBottom: 2,
+    },
+    // Table
+    table: {
+      marginTop: 8,
+      marginBottom: 24,
+    },
+    tableHeader: {
+      flexDirection: 'row',
+      backgroundColor: `${accent}15`,
+      paddingVertical: 10,
+      paddingHorizontal: 10,
+      borderBottom: `1.5px solid ${accent}`,
+    },
+    tableHeaderText: {
+      fontSize: 8,
+      fontWeight: 'bold',
+      color: accent,
+      textTransform: 'uppercase',
+      letterSpacing: 0.8,
+    },
+    tableRow: {
+      flexDirection: 'row',
+      paddingVertical: 9,
+      paddingHorizontal: 10,
+      borderBottom: '0.5px solid #eeeeee',
+    },
+    tableRowAlt: {
+      flexDirection: 'row',
+      paddingVertical: 9,
+      paddingHorizontal: 10,
+      borderBottom: '0.5px solid #eeeeee',
+      backgroundColor: '#fafafa',
+    },
+    tableCol1: { width: '48%', fontSize: 10 },
+    tableCol2: { width: '12%', textAlign: 'right', fontSize: 10 },
+    tableCol3: { width: '20%', textAlign: 'right', fontSize: 10 },
+    tableCol4: { width: '20%', textAlign: 'right', fontSize: 10, fontWeight: 'bold' },
+    // Summary
+    summaryContainer: {
+      marginLeft: 'auto',
+      width: '45%',
+      marginTop: 8,
+    },
+    summaryRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingVertical: 5,
+    },
+    summaryLabel: {
+      fontSize: 10,
+      color: '#888888',
+    },
+    summaryValue: {
+      fontSize: 10,
+      color: '#333333',
+    },
+    totalRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      backgroundColor: accent,
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      borderRadius: 4,
+      marginTop: 6,
+    },
+    totalLabel: {
+      fontSize: 12,
+      fontWeight: 'bold',
+      color: '#FFFFFF',
+    },
+    totalValue: {
+      fontSize: 14,
+      fontWeight: 'bold',
+      color: '#FFFFFF',
+    },
+    // Payment terms
+    paymentTerms: {
+      fontSize: 9,
+      color: '#aaaaaa',
+      fontStyle: 'italic',
+      marginTop: 14,
+      textAlign: 'right',
+    },
+    // Status badge
+    statusContainer: {
+      marginTop: 24,
+      alignItems: 'center',
+    },
+    statusPaid: {
+      fontSize: 10,
+      fontWeight: 'bold',
+      color: '#FFFFFF',
+      paddingVertical: 8,
+      paddingHorizontal: 24,
+      borderRadius: 4,
+      backgroundColor: accent,
+    },
+    statusPending: {
+      fontSize: 10,
+      fontWeight: 'bold',
+      color: '#FFFFFF',
+      paddingVertical: 8,
+      paddingHorizontal: 24,
+      borderRadius: 4,
+      backgroundColor: '#E8A317',
+    },
+    // Bank details
+    bankSection: {
+      marginTop: 24,
+      padding: 12,
+      backgroundColor: '#f8f8f8',
+      borderRadius: 4,
+      borderLeft: `3px solid ${accent}`,
+    },
+    bankTitle: {
+      fontSize: 8,
+      fontWeight: 'bold',
+      color: accent,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+      marginBottom: 6,
+    },
+    bankLine: {
+      fontSize: 9,
+      color: '#666666',
+      marginBottom: 2,
+    },
+    // Footer
+    footer: {
+      marginTop: 'auto',
+      paddingTop: 14,
+      borderTop: `1px solid ${accent}40`,
+    },
+    footerText: {
+      fontSize: 9,
+      textAlign: 'center',
+      color: '#999999',
+      marginBottom: 4,
+    },
+    footerNote: {
+      fontSize: 8,
+      textAlign: 'center',
+      color: '#cccccc',
+      fontStyle: 'italic',
+    },
+  })
+}
+
 export const InvoicePDF: React.FC<InvoicePDFProps> = ({ invoice, hotelSettings }) => {
-  const hotelName = hotelSettings?.hotelName || 'NEBOSYNC HOTEL'
+  const accent = hotelSettings?.invoiceAccentColor || '#2D5A3D'
+  const currency = hotelSettings?.currencySymbol || '₹'
+  const hotelName = hotelSettings?.hotelName || 'NeboSync Hotel'
   const hotelAddress = hotelSettings?.address || ''
   const hotelPhone = hotelSettings?.phone || ''
   const hotelEmail = hotelSettings?.email || ''
+  const hotelWebsite = hotelSettings?.website || ''
   const taxLabel = hotelSettings?.taxLabel || 'GST'
   const taxPercentage = hotelSettings ? (hotelSettings.taxRate * 100).toFixed(0) : '18'
+  const paymentTerms = hotelSettings?.paymentTerms || 'Due upon checkout'
   const invoiceFooter = hotelSettings?.invoiceFooter || 'Thank you for choosing our hotel!'
+  const showBank = hotelSettings?.showBankDetails ?? true
+  const logoUrl = hotelSettings?.logoUrl || null
+  const canShowLogo = isRasterImage(logoUrl)
+
+  const styles = createStyles(accent)
+
+  const fmt = (amount: number) => `${currency}${amount.toLocaleString('en-IN')}`
+
+  const dateStr = new Date(invoice.createdAt).toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {/* Accent top bar */}
+        <View style={styles.topBar} />
+
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.hotelName}>{hotelName.toUpperCase()}</Text>
-          {hotelAddress && <Text style={styles.headerSubtext}>{hotelAddress}</Text>}
-          {hotelPhone && <Text style={styles.headerSubtext}>Tel: {hotelPhone} | Email: {hotelEmail}</Text>}
-          {hotelSettings?.taxRegistration && (
-            <Text style={styles.headerSubtext}>GSTIN: {hotelSettings.taxRegistration}</Text>
-          )}
-          <Text style={styles.invoiceTitle}>Tax Invoice</Text>
+        <View style={styles.headerContainer}>
+          <View style={styles.headerLeft}>
+            {canShowLogo && logoUrl && (
+              <Image style={styles.logo} src={logoUrl} />
+            )}
+            <View style={styles.headerInfo}>
+              <Text style={styles.hotelName}>{hotelName.toUpperCase()}</Text>
+              {hotelAddress ? <Text style={styles.headerDetail}>{hotelAddress}</Text> : null}
+              {(hotelPhone || hotelEmail) ? (
+                <Text style={styles.headerDetail}>
+                  {hotelPhone}{hotelPhone && hotelEmail ? '  ·  ' : ''}{hotelEmail}
+                </Text>
+              ) : null}
+              {hotelWebsite ? <Text style={styles.headerDetail}>{hotelWebsite}</Text> : null}
+              {hotelSettings?.taxRegistration && (
+                <Text style={styles.headerGstin}>GSTIN: {hotelSettings.taxRegistration}</Text>
+              )}
+            </View>
+          </View>
+          <View style={styles.invoiceBadge}>
+            <Text style={styles.invoiceBadgeText}>Tax Invoice</Text>
+          </View>
         </View>
 
-        {/* Invoice Info and Guest Info Side by Side */}
+        <View style={styles.rule} />
+
+        {/* Two-column info */}
         <View style={styles.infoRow}>
-          {/* Invoice Details */}
-          <View style={styles.infoBox}>
-            <Text style={styles.sectionTitle}>Invoice Details</Text>
-            <View style={styles.infoLine}>
-              <Text style={styles.infoLabel}>Invoice No:</Text>
-              <Text style={styles.infoValue}>{invoice.invoiceNumber}</Text>
-            </View>
-            <View style={styles.infoLine}>
-              <Text style={styles.infoLabel}>Date:</Text>
-              <Text style={styles.infoValue}>
-                {new Date(invoice.createdAt).toLocaleDateString('en-IN', {
-                  day: '2-digit',
-                  month: 'short',
-                  year: 'numeric',
-                })}
-              </Text>
-            </View>
-            <View style={styles.infoLine}>
-              <Text style={styles.infoLabel}>Status:</Text>
-              <Text style={styles.infoValue}>{invoice.status}</Text>
-            </View>
+          <View style={styles.infoCol}>
+            <Text style={styles.infoSectionLabel}>Invoice Details</Text>
+            <Text style={styles.infoTextBold}>{invoice.invoiceNumber}</Text>
+            <Text style={styles.infoText}>Date: {dateStr}</Text>
           </View>
-
-          {/* Guest Information */}
-          <View style={styles.infoBox}>
-            <Text style={styles.sectionTitle}>Billed To</Text>
-            <View style={styles.infoLine}>
-              <Text style={styles.infoLabel}>Name:</Text>
-              <Text style={styles.infoValue}>{invoice.guest.name}</Text>
-            </View>
-            <View style={styles.infoLine}>
-              <Text style={styles.infoLabel}>Phone:</Text>
-              <Text style={styles.infoValue}>{invoice.guest.phone}</Text>
-            </View>
-            {invoice.guest.email && (
-              <View style={styles.infoLine}>
-                <Text style={styles.infoLabel}>Email:</Text>
-                <Text style={styles.infoValue}>{invoice.guest.email}</Text>
-              </View>
-            )}
+          <View style={styles.infoCol}>
+            <Text style={styles.infoSectionLabel}>Billed To</Text>
+            <Text style={styles.infoTextBold}>{invoice.guest.name}</Text>
             {invoice.guest.room && (
-              <View style={styles.infoLine}>
-                <Text style={styles.infoLabel}>Room No:</Text>
-                <Text style={styles.infoValue}>{invoice.guest.room.roomNumber}</Text>
-              </View>
+              <Text style={styles.infoText}>Room {invoice.guest.room.roomNumber}</Text>
+            )}
+            <Text style={styles.infoTextLight}>{invoice.guest.phone}</Text>
+            {invoice.guest.email && (
+              <Text style={styles.infoTextLight}>{invoice.guest.email}</Text>
             )}
           </View>
         </View>
 
-        {/* Invoice Items Table */}
-        <View style={styles.table}>
-          {/* Table Header */}
-          <View style={styles.tableHeader}>
-            <Text style={styles.tableCol1}>Description</Text>
-            <Text style={styles.tableCol2}>Qty</Text>
-            <Text style={styles.tableCol3}>Rate</Text>
-            <Text style={styles.tableCol4}>Amount</Text>
-          </View>
+        <View style={styles.rule} />
 
-          {/* Table Rows */}
+        {/* Items Table */}
+        <View style={styles.table}>
+          <View style={styles.tableHeader}>
+            <Text style={[styles.tableHeaderText, styles.tableCol1]}>Description</Text>
+            <Text style={[styles.tableHeaderText, styles.tableCol2]}>Qty</Text>
+            <Text style={[styles.tableHeaderText, styles.tableCol3]}>Rate</Text>
+            <Text style={[styles.tableHeaderText, styles.tableCol4]}>Amount</Text>
+          </View>
           {invoice.invoiceItems.map((item, index) => (
             <View key={index} style={index % 2 === 0 ? styles.tableRow : styles.tableRowAlt}>
               <Text style={styles.tableCol1}>{item.description}</Text>
               <Text style={styles.tableCol2}>{item.quantity}</Text>
-              <Text style={styles.tableCol3}>₹{item.unitPrice.toLocaleString('en-IN')}</Text>
-              <Text style={styles.tableCol4}>₹{item.total.toLocaleString('en-IN')}</Text>
+              <Text style={styles.tableCol3}>{fmt(item.unitPrice)}</Text>
+              <Text style={styles.tableCol4}>{fmt(item.total)}</Text>
             </View>
           ))}
         </View>
@@ -367,41 +416,46 @@ export const InvoicePDF: React.FC<InvoicePDFProps> = ({ invoice, hotelSettings }
         {/* Summary */}
         <View style={styles.summaryContainer}>
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Subtotal:</Text>
-            <Text style={styles.summaryValue}>₹{invoice.subtotal.toLocaleString('en-IN')}</Text>
+            <Text style={styles.summaryLabel}>Subtotal</Text>
+            <Text style={styles.summaryValue}>{fmt(invoice.subtotal)}</Text>
           </View>
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>{taxLabel} ({taxPercentage}%):</Text>
-            <Text style={styles.summaryValue}>₹{invoice.tax.toLocaleString('en-IN')}</Text>
+            <Text style={styles.summaryLabel}>{taxLabel} ({taxPercentage}%)</Text>
+            <Text style={styles.summaryValue}>{fmt(invoice.tax)}</Text>
           </View>
           <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Total Amount:</Text>
-            <Text style={styles.totalValue}>₹{invoice.total.toLocaleString('en-IN')}</Text>
+            <Text style={styles.totalLabel}>Total</Text>
+            <Text style={styles.totalValue}>{fmt(invoice.total)}</Text>
           </View>
         </View>
 
-        {/* Payment Status Badge */}
-        <View style={[styles.statusBadge, invoice.paidAt ? styles.statusPaid : styles.statusPending]}>
-          <Text>
-            {invoice.paidAt
-              ? `✓ PAID on ${new Date(invoice.paidAt).toLocaleDateString('en-IN')}`
-              : '○ PAYMENT PENDING'}
-          </Text>
+        {/* Payment Terms */}
+        <Text style={styles.paymentTerms}>{paymentTerms}</Text>
+
+        {/* Status Badge */}
+        <View style={styles.statusContainer}>
+          {invoice.paidAt ? (
+            <Text style={styles.statusPaid}>
+              PAID  ·  {new Date(invoice.paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+            </Text>
+          ) : (
+            <Text style={styles.statusPending}>PAYMENT PENDING</Text>
+          )}
         </View>
 
         {/* Bank Details */}
-        {hotelSettings?.bankName && (
-          <View style={styles.bankDetails}>
-            <Text style={styles.bankTitle}>Bank Details for Payment:</Text>
+        {showBank && hotelSettings?.bankName && (
+          <View style={styles.bankSection}>
+            <Text style={styles.bankTitle}>Bank Details for Payment</Text>
             <Text style={styles.bankLine}>Bank: {hotelSettings.bankName}</Text>
             {hotelSettings.accountName && (
               <Text style={styles.bankLine}>Account Name: {hotelSettings.accountName}</Text>
             )}
             {hotelSettings.accountNumber && (
-              <Text style={styles.bankLine}>Account Number: {hotelSettings.accountNumber}</Text>
+              <Text style={styles.bankLine}>Account No: {hotelSettings.accountNumber}</Text>
             )}
             {hotelSettings.ifscCode && (
-              <Text style={styles.bankLine}>IFSC Code: {hotelSettings.ifscCode}</Text>
+              <Text style={styles.bankLine}>IFSC: {hotelSettings.ifscCode}</Text>
             )}
           </View>
         )}
@@ -412,16 +466,12 @@ export const InvoicePDF: React.FC<InvoicePDFProps> = ({ invoice, hotelSettings }
           <Text style={styles.footerNote}>
             This is a computer-generated invoice and does not require a signature.
           </Text>
-          <Text style={styles.footerNote}>
-            For any queries, please contact our front desk. | {hotelEmail || ''}
-          </Text>
         </View>
       </Page>
     </Document>
   )
 }
 
-// Helper function to generate PDF buffer
 export async function generateInvoicePDF(
   invoice: InvoicePDFProps['invoice'],
   hotelSettings?: HotelSettings

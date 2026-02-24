@@ -334,6 +334,10 @@ model HotelSettings {
   // Invoice Settings
   invoicePrefix     String   @default("INV")
   invoiceFooter     String   @default("Thank you for choosing our hotel!")
+  invoiceAccentColor String  @default("#2D5A3D")
+  paymentTerms      String   @default("Due upon checkout")
+  currencySymbol    String   @default("₹")
+  showBankDetails   Boolean  @default(true)
 
   // Banking Details
   bankName          String?

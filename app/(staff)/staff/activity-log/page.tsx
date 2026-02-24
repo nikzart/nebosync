@@ -56,6 +56,7 @@ const ENTITY_OPTIONS = [
   { value: 'service', label: 'Services' },
   { value: 'hotel_settings', label: 'Settings' },
   { value: 'wifi', label: 'WiFi' },
+  { value: 'invoice', label: 'Invoices' },
 ]
 
 const ACTION_OPTIONS = [

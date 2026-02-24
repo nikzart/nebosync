@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { generateInvoiceForOrder } from '@/lib/invoice'
+import { logActivity } from '@/lib/activity-log'
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,6 +21,15 @@ export async function POST(request: NextRequest) {
     }
 
     const invoice = await generateInvoiceForOrder(orderId)
+
+    logActivity({
+      userId: session.user.id,
+      action: 'CREATE',
+      entity: 'invoice',
+      entityId: invoice.id,
+      description: `Generated invoice #${invoice.invoiceNumber} from order`,
+    })
+
     return NextResponse.json(invoice, { status: 201 })
   } catch (error) {
     console.error('Error generating invoice:', error)

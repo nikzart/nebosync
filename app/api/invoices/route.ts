@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
+import { logActivity } from '@/lib/activity-log'
 
 export async function GET(request: NextRequest) {
   try {
@@ -96,13 +97,33 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Calculate totals
+    // Fetch hotel settings for tax rate and invoice prefix
+    let hotelSettings = await prisma.hotelSettings.findFirst()
+    if (!hotelSettings) {
+      hotelSettings = await prisma.hotelSettings.create({
+        data: {
+          hotelName: 'NeboSync Hotel',
+          address: '',
+          phone: '',
+          email: '',
+          website: '',
+          taxRate: 0.18,
+          taxLabel: 'GST',
+          invoicePrefix: 'INV',
+          invoiceFooter: 'Thank you for choosing our hotel!',
+        },
+      })
+    }
+
+    // Calculate totals using dynamic tax rate
     const subtotal = orders.reduce((sum, order) => sum + order.totalAmount, 0)
-    const tax = subtotal * 0.18 // 18% tax
+    const tax = subtotal * hotelSettings.taxRate
     const total = subtotal + tax
 
     // Generate unique invoice number
-    const invoiceNumber = `INV-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '')
+    const randomNum = Math.floor(1000 + Math.random() * 9000)
+    const invoiceNumber = `${hotelSettings.invoicePrefix}-${dateStr}-${randomNum}`
 
     // Create invoice
     const invoice = await prisma.invoice.create({
@@ -144,6 +165,14 @@ export async function POST(request: NextRequest) {
           },
         },
       },
+    })
+
+    logActivity({
+      userId: session.user.id,
+      action: 'CREATE',
+      entity: 'invoice',
+      entityId: invoice.id,
+      description: `Created invoice #${invoiceNumber} for ${invoice.guest.name} — ₹${total.toLocaleString('en-IN')}`,
     })
 
     return NextResponse.json(invoice, { status: 201 })
