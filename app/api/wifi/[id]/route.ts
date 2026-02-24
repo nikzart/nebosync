@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
+import { logActivity } from '@/lib/activity-log'
 
 export async function PUT(
   request: NextRequest,
@@ -39,6 +40,14 @@ export async function PUT(
       },
     })
 
+    logActivity({
+      userId: session.user.id,
+      action: 'UPDATE',
+      entity: 'wifi',
+      entityId: id,
+      description: `Updated WiFi network: ${credential.ssid}`,
+    })
+
     return NextResponse.json(credential)
   } catch (error) {
     console.error('Error updating WiFi credential:', error)
@@ -60,10 +69,21 @@ export async function DELETE(
     }
 
     const { id } = await params
+    // Fetch before soft-deleting so we have the name for the log
+    const existing = await prisma.wiFiCredential.findUnique({ where: { id } })
+
     // Soft delete by setting isActive to false
     await prisma.wiFiCredential.update({
       where: { id },
       data: { isActive: false },
+    })
+
+    logActivity({
+      userId: session.user.id,
+      action: 'DELETE',
+      entity: 'wifi',
+      entityId: id,
+      description: `Deleted WiFi network: ${existing?.ssid ?? id}`,
     })
 
     return NextResponse.json({ message: 'WiFi credential deleted successfully' })

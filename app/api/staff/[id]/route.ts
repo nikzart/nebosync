@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { logActivity } from '@/lib/activity-log'
 
 export async function PUT(
   request: NextRequest,
@@ -108,6 +109,14 @@ export async function DELETE(
     // Hard delete
     await prisma.user.delete({
       where: { id },
+    })
+
+    logActivity({
+      userId: session.user.id,
+      action: 'DELETE',
+      entity: 'user',
+      entityId: id,
+      description: `Deleted staff: ${staff.name} (${staff.email})`,
     })
 
     return NextResponse.json({ message: 'Staff deleted successfully' })

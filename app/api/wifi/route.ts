@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
+import { logActivity } from '@/lib/activity-log'
 
 export async function GET(request: NextRequest) {
   try {
@@ -48,6 +49,14 @@ export async function POST(request: NextRequest) {
         description,
         isActive: true,
       },
+    })
+
+    logActivity({
+      userId: session.user.id,
+      action: 'CREATE',
+      entity: 'wifi',
+      entityId: credential.id,
+      description: `Added WiFi network: ${ssid}`,
     })
 
     return NextResponse.json(credential, { status: 201 })

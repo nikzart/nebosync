@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
+import { logActivity } from '@/lib/activity-log'
 
 export async function GET(
   request: NextRequest,
@@ -83,6 +84,14 @@ export async function PUT(
       },
     })
 
+    logActivity({
+      userId: session.user.id,
+      action: 'UPDATE',
+      entity: 'food_menu',
+      entityId: id,
+      description: `Updated food item: ${name}`,
+    })
+
     return NextResponse.json(updatedItem)
   } catch (error) {
     console.error('Error updating food item:', error)
@@ -120,6 +129,14 @@ export async function DELETE(
     // Delete the item
     await prisma.foodMenu.delete({
       where: { id },
+    })
+
+    logActivity({
+      userId: session.user.id,
+      action: 'DELETE',
+      entity: 'food_menu',
+      entityId: id,
+      description: `Deleted food item: ${existingItem.name}`,
     })
 
     return NextResponse.json({ message: 'Food item deleted successfully' })

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
+import { logActivity } from '@/lib/activity-log'
 
 export async function GET(
   request: NextRequest,
@@ -82,6 +83,14 @@ export async function PUT(
       },
     })
 
+    logActivity({
+      userId: session.user.id,
+      action: 'UPDATE',
+      entity: 'service',
+      entityId: id,
+      description: `Updated service: ${name}`,
+    })
+
     return NextResponse.json(updatedService)
   } catch (error) {
     console.error('Error updating service:', error)
@@ -119,6 +128,14 @@ export async function DELETE(
     // Delete the service
     await prisma.service.delete({
       where: { id },
+    })
+
+    logActivity({
+      userId: session.user.id,
+      action: 'DELETE',
+      entity: 'service',
+      entityId: id,
+      description: `Deleted service: ${existingService.name}`,
     })
 
     return NextResponse.json({ message: 'Service deleted successfully' })

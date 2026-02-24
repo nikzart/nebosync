@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
+import { logActivity } from '@/lib/activity-log'
 
 export async function GET(request: NextRequest) {
   try {
@@ -63,6 +64,14 @@ export async function POST(request: NextRequest) {
         isAvailable: isAvailable ?? true,
         isVeg: isVeg ?? true,
       },
+    })
+
+    logActivity({
+      userId: session.user.id,
+      action: 'CREATE',
+      entity: 'food_menu',
+      entityId: newItem.id,
+      description: `Added food item: ${name} at ₹${parseFloat(price).toLocaleString('en-IN')}`,
     })
 
     return NextResponse.json(newItem, { status: 201 })

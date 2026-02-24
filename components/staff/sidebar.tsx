@@ -14,6 +14,7 @@ import {
   BedDouble,
   FileText,
   UserCog,
+  Activity,
   LogOut
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -35,6 +36,7 @@ const navigation: NavigationItem[] = [
   { name: 'Guests', href: '/staff/guests', icon: Users },
   { name: 'Rooms', href: '/staff/rooms', icon: BedDouble },
   { name: 'Invoices', href: '/staff/invoices', icon: FileText },
+  { name: 'Activity', href: '/staff/activity-log', icon: Activity },
   { name: 'Staff', href: '/staff/staff-management', icon: UserCog, adminOnly: true },
   { name: 'Settings', href: '/staff/settings', icon: Settings },
 ]

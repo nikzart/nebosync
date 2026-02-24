@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
+import { logActivity } from '@/lib/activity-log'
 
 export async function POST(request: NextRequest) {
   try {
@@ -65,6 +66,14 @@ export async function POST(request: NextRequest) {
       })
 
       return newGuest
+    })
+
+    logActivity({
+      userId: session.user.id,
+      action: 'CREATE',
+      entity: 'guest',
+      entityId: guest.id,
+      description: `Checked in ${name} to Room ${guest.room?.roomNumber ?? 'N/A'}`,
     })
 
     return NextResponse.json(guest, { status: 201 })

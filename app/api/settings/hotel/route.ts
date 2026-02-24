@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
+import { logActivity } from '@/lib/activity-log'
 
 export async function GET(request: NextRequest) {
   try {
@@ -63,6 +64,7 @@ export async function PUT(request: NextRequest) {
       accountNumber,
       ifscCode,
       accountName,
+      _section,
     } = body
 
     // Get existing settings or prepare for creation
@@ -105,6 +107,19 @@ export async function PUT(request: NextRequest) {
         ifscCode,
         accountName,
       },
+    })
+
+    const sectionLabels: Record<string, string> = {
+      hotel_info: 'Updated hotel information',
+      billing_tax: 'Updated billing & tax configuration',
+    }
+
+    logActivity({
+      userId: session.user.id,
+      action: 'UPDATE',
+      entity: 'hotel_settings',
+      entityId: settings.id,
+      description: sectionLabels[_section] ?? 'Updated hotel settings',
     })
 
     return NextResponse.json(settings)

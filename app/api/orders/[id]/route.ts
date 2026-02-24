@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import { generateInvoiceForOrder } from '@/lib/invoice'
+import { logActivity } from '@/lib/activity-log'
 
 export async function GET(
   request: NextRequest,
@@ -93,12 +94,20 @@ export async function PATCH(
     if (status === 'COMPLETED') {
       try {
         const invoice = await generateInvoiceForOrder(id)
-        console.log('✅ Auto-generated invoice:', invoice.invoiceNumber)
+        console.log('Auto-generated invoice:', invoice.invoiceNumber)
       } catch (invoiceError) {
         console.error('Failed to auto-generate invoice:', invoiceError)
         // Don't fail the order update if invoice generation fails
       }
     }
+
+    logActivity({
+      userId: session.user.id,
+      action: 'STATUS_CHANGE',
+      entity: 'order',
+      entityId: id,
+      description: `Changed order to ${status} for ${order.guest.name} (Room ${order.guest.room?.roomNumber ?? 'N/A'})`,
+    })
 
     return NextResponse.json(order)
   } catch (error) {

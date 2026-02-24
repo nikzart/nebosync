@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { logActivity } from '@/lib/activity-log'
 
 export async function GET(request: NextRequest) {
   try {
@@ -87,6 +88,14 @@ export async function POST(request: NextRequest) {
         isActive: true,
         createdAt: true,
       },
+    })
+
+    logActivity({
+      userId: session.user.id,
+      action: 'CREATE',
+      entity: 'user',
+      entityId: staff.id,
+      description: `Created ${role} account for ${name}`,
     })
 
     return NextResponse.json(staff, { status: 201 })

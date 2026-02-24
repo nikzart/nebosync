@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, FormEvent } from 'react'
 import { useSession } from 'next-auth/react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -84,6 +84,52 @@ export default function SettingsPage() {
   const [editingWifi, setEditingWifi] = useState<Partial<WiFiCredential> | null>(null)
   const [newWifi, setNewWifi] = useState({ ssid: '', password: '', description: '' })
 
+  // Password change state
+  const [passwordFields, setPasswordFields] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  })
+
+  const passwordMutation = useMutation({
+    mutationFn: async (data: typeof passwordFields) => {
+      const res = await fetch('/api/staff/password', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Failed to change password')
+      }
+      return res.json()
+    },
+    onSuccess: () => {
+      toast.success('Password updated successfully')
+      setPasswordFields({ currentPassword: '', newPassword: '', confirmPassword: '' })
+    },
+    onError: (error: Error) => {
+      toast.error(error.message)
+    },
+  })
+
+  const handlePasswordChange = (e: FormEvent) => {
+    e.preventDefault()
+    if (!passwordFields.currentPassword || !passwordFields.newPassword || !passwordFields.confirmPassword) {
+      toast.error('All password fields are required')
+      return
+    }
+    if (passwordFields.newPassword.length < 6) {
+      toast.error('New password must be at least 6 characters')
+      return
+    }
+    if (passwordFields.newPassword !== passwordFields.confirmPassword) {
+      toast.error('New passwords do not match')
+      return
+    }
+    passwordMutation.mutate(passwordFields)
+  }
+
   // Notification Settings
   const [notificationSettings, setNotificationSettings] = useState({
     emailNotifications: true,
@@ -94,7 +140,7 @@ export default function SettingsPage() {
   })
 
   const updateHotelMutation = useMutation({
-    mutationFn: async (data: Partial<HotelSettings>) => {
+    mutationFn: async (data: Partial<HotelSettings> & { _section?: string }) => {
       const res = await fetch('/api/settings/hotel', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -116,9 +162,9 @@ export default function SettingsPage() {
     },
   })
 
-  const handleSaveHotelInfo = () => {
+  const handleSaveHotelInfo = (section: string) => {
     if (!editingHotelInfo) return
-    updateHotelMutation.mutate(editingHotelInfo)
+    updateHotelMutation.mutate({ ...editingHotelInfo, _section: section })
   }
 
   const createWifiMutation = useMutation({
@@ -316,7 +362,7 @@ export default function SettingsPage() {
                     />
                   </div>
                   <Button
-                    onClick={handleSaveHotelInfo}
+                    onClick={() => handleSaveHotelInfo('hotel_info')}
                     disabled={updateHotelMutation.isPending || !editingHotelInfo}
                     className="gap-2"
                   >
@@ -496,7 +542,7 @@ export default function SettingsPage() {
                   </div>
 
                   <Button
-                    onClick={handleSaveHotelInfo}
+                    onClick={() => handleSaveHotelInfo('billing_tax')}
                     disabled={updateHotelMutation.isPending || !editingHotelInfo}
                     className="gap-2"
                   >
@@ -866,33 +912,54 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div>
+              <form onSubmit={handlePasswordChange}>
                 <h3 className="font-semibold mb-3">Change Password</h3>
                 <div className="space-y-3">
                   <div>
                     <label className="text-sm font-medium mb-2 block">
                       Current Password
                     </label>
-                    <Input type="password" placeholder="Enter current password" />
+                    <Input
+                      type="password"
+                      placeholder="Enter current password"
+                      value={passwordFields.currentPassword}
+                      onChange={(e) =>
+                        setPasswordFields({ ...passwordFields, currentPassword: e.target.value })
+                      }
+                    />
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-2 block">
                       New Password
                     </label>
-                    <Input type="password" placeholder="Enter new password" />
+                    <Input
+                      type="password"
+                      placeholder="Enter new password"
+                      value={passwordFields.newPassword}
+                      onChange={(e) =>
+                        setPasswordFields({ ...passwordFields, newPassword: e.target.value })
+                      }
+                    />
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-2 block">
                       Confirm New Password
                     </label>
-                    <Input type="password" placeholder="Confirm new password" />
+                    <Input
+                      type="password"
+                      placeholder="Confirm new password"
+                      value={passwordFields.confirmPassword}
+                      onChange={(e) =>
+                        setPasswordFields({ ...passwordFields, confirmPassword: e.target.value })
+                      }
+                    />
                   </div>
-                  <Button className="gap-2">
+                  <Button type="submit" disabled={passwordMutation.isPending} className="gap-2">
                     <Save className="w-4 h-4" />
-                    Update Password
+                    {passwordMutation.isPending ? 'Updating...' : 'Update Password'}
                   </Button>
                 </div>
-              </div>
+              </form>
             </CardContent>
           </Card>
         </TabsContent>

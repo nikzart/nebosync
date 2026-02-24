@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
+import { logActivity } from '@/lib/activity-log'
 
 export async function GET(
   request: NextRequest,
@@ -177,6 +178,14 @@ export async function PATCH(
       const stayDuration = Math.ceil(
         (new Date().getTime() - new Date(guest.checkInDate).getTime()) / (1000 * 60 * 60 * 24)
       )
+
+      logActivity({
+        userId: session.user.id,
+        action: 'UPDATE',
+        entity: 'guest',
+        entityId: id,
+        description: `Checked out ${guest.name} from Room ${guest.room?.roomNumber ?? 'N/A'}`,
+      })
 
       return NextResponse.json({
         ...updatedGuest,
