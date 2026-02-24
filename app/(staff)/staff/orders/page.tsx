@@ -325,7 +325,7 @@ export default function StaffOrdersPage() {
                             status: 'ACCEPTED',
                           })
                         }
-                        className="flex-1 bg-lime-green hover:bg-lime-green/90"
+                        className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
                       >
                         Accept
                       </Button>
@@ -338,7 +338,7 @@ export default function StaffOrdersPage() {
                             status: 'CANCELLED',
                           })
                         }
-                        className="flex-1 text-red-500 border-red-200 hover:bg-red-50"
+                        className="flex-1 text-red-500 border-red-500/30 hover:bg-red-500/10"
                       >
                         Decline
                       </Button>
