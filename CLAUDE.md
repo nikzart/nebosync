@@ -14,7 +14,8 @@ NeboSync is a hotel management application with dual interfaces:
 - NextAuth.js v5 (beta) for authentication
 - Prisma ORM with PostgreSQL
 - TanStack Query (React Query) for data fetching
-- Socket.io for real-time features
+- Recharts for data visualization (analytics charts)
+- Polling-based real-time updates (Socket.io planned but incompatible with Turbopack)
 - Shadcn/ui + Tailwind CSS v4 for UI
 - Framer Motion for animations
 
@@ -58,9 +59,12 @@ DATABASE_URL="postgresql://USER@localhost:5432/nebosync?schema=public"
    - `staff-login`: Email/password for Admin & Staff (User model)
    - `guest-login`: Phone/room number for Guests (Guest model)
 
-2. **Server actions** in `app/login/actions.ts` handle login logic
-   - `staffLogin()` - Returns `{ error }` on failure, redirects to `/staff` on success
-   - `guestLogin()` - Returns `{ error }` on failure, redirects to `/guest` on success
+2. **Separate login pages**:
+   - `/login` - Staff-only login (dark theme, lime green accents, animated mesh grid)
+   - `/guest-login` - Guest-only login (light theme, forest green + gold, feature pills)
+   - Server actions in `app/login/actions.ts` handle both flows
+   - `staffLogin()` - Returns `{ error }` on failure, `{ success, redirectTo: '/staff' }` on success
+   - `guestLogin()` - Returns `{ error }` on failure, `{ success, redirectTo: '/guest' }` on success
 
 3. **Session handling**:
    - JWT strategy with 30-day sessions
@@ -72,6 +76,8 @@ DATABASE_URL="postgresql://USER@localhost:5432/nebosync?schema=public"
    - Guest: `app/(guest)/*` - Checks `session.user.role === 'GUEST'`
    - Use `auth()` from `@/auth` in Server Components
    - Root `/` redirects based on role
+   - Guest auth redirects go to `/guest-login`, staff auth redirects go to `/login`
+   - Guest logout redirects to `/guest-login`, staff logout redirects to `/login`
 
 ## Route Groups & Layouts
 
@@ -79,16 +85,20 @@ DATABASE_URL="postgresql://USER@localhost:5432/nebosync?schema=public"
 
 ```
 app/
-├── (staff)/           # Staff/Admin routes (dark theme, desktop-first)
-│   ├── layout.tsx     # Sidebar + header wrapper
-│   └── staff/page.tsx # Dashboard
-├── (guest)/           # Guest routes (light theme, mobile-first)
-│   ├── layout.tsx     # Bottom nav wrapper
-│   └── guest/page.tsx # Guest home
-├── login/             # Unified login page with tabs
+├── (staff)/              # Staff/Admin routes (dark theme, desktop-first)
+│   ├── layout.tsx        # Sidebar + header wrapper
+│   ├── staff/page.tsx    # Dashboard (order pipeline, recent orders, popular items)
+│   └── staff/analytics/  # Revenue analytics with charts
+├── (guest)/              # Guest routes (light theme, mobile-first)
+│   ├── layout.tsx        # Bottom nav wrapper (redirects to /guest-login if unauthed)
+│   └── guest/page.tsx    # Guest home
+├── login/                # Staff login page (dark theme, mesh grid animation)
+├── guest-login/          # Guest login page (light theme, forest green + gold)
 ├── api/
-│   └── auth/[...nextauth]/route.ts  # NextAuth v5 handlers
-└── layout.tsx         # Root layout with Providers
+│   ├── auth/[...nextauth]/route.ts  # NextAuth v5 handlers
+│   ├── analytics/revenue/route.ts   # Revenue analytics API
+│   └── ...
+└── layout.tsx            # Root layout with Providers
 ```
 
 ## Data Layer
@@ -103,8 +113,9 @@ app/
 - `OrderItem` - Line items (links to Service OR FoodMenu)
 - `Message` - Chat messages (TEXT/IMAGE/VOICE types)
 - `Invoice` - Billing with line items
-- `ActivityLog` - Admin audit trail
+- `ActivityLog` - Admin audit trail (see Activity Log section below)
 - `WiFiCredential` - WiFi info for guests
+- `HotelSettings` - Singleton hotel config (tax, invoice, banking)
 
 **Key patterns:**
 - Prices in rupees (₹) - Indian currency
@@ -125,12 +136,14 @@ Import via `getQueryClient()` for app router compatibility.
 ## Theme System
 
 **Dual theme approach using next-themes:**
-- Light mode (default): Guest interface with pastel purple/lavender + lime accents
-- Dark mode: Staff interface with dark bg, lime-green and orange accents
+- Light mode (default): Guest interface — forest green (`#2D5A3D`) + warm gold (`#C9A96E`) on warm beige (`#FAF9F6`)
+- Dark mode: Staff interface — dark bg (`#0a0a0a`), lime-green (`#a3ff57`) and soft-orange (`#ff8844`) accents
 - Theme switching via `next-themes` ThemeProvider in `components/providers.tsx`
 - CSS variables in `app/globals.css` with proper light/dark mode support
+- Guest design tokens: `--guest-accent`, `--guest-gold`, `--guest-bg`, etc.
 - All components use CSS variables (`bg-card`, `text-foreground`, etc.) for theme consistency
 - Staff header is sticky with `sticky top-0 z-50` for persistent navigation
+- **Recharts dark mode**: Use `var(--variable)` directly (NOT `hsl(var(...))`), and set `itemStyle`/`labelStyle` on Tooltips
 
 ## Component Organization
 
@@ -151,18 +164,68 @@ components/
 ## Styling Notes
 
 - **Tailwind v4** with custom theme in `app/globals.css`
-- CSS variable naming: `--pastel-purple`, `--lime-accent`, `--soft-gray` (light), `--lime-green`, `--soft-orange` (dark)
+- CSS variable naming: `--guest-accent`, `--guest-gold`, `--guest-bg` (light), `--lime-green`, `--soft-orange` (dark)
 - All transitions use `transition-colors 0.3s ease`
 - Border radius: `1rem` default for cards
 - Component variants via `class-variance-authority`
+- Custom animations in globals.css: `shimmer` (skeletons), `mesh-drift` (staff login grid)
 
-## Real-time Features (TODO)
+## Real-time Features
 
-Socket.io setup planned for:
-- Live order updates
-- Real-time chat (text/image/voice)
-- Staff activity monitoring
-- Use `socket.io` (server) and `socket.io-client` (client)
+- **Polling-based** approach (Socket.io incompatible with Next.js 15 + Turbopack without custom server)
+- Messages poll every 2 seconds, header stats every 5 seconds, dashboard every 30 seconds
+- `refetchOnFocus` and `refetchOnReconnect` enabled for all real-time queries
+
+## Activity Log System
+
+**Fire-and-forget audit trail** tracking all staff mutations across the app.
+
+### Core function: `logActivity()` (`lib/activity-log.ts`)
+
+```typescript
+logActivity({
+  userId: session.user.id,       // Staff member (optional, null for system actions)
+  action: 'STATUS_CHANGE',       // CREATE | UPDATE | DELETE | STATUS_CHANGE
+  entity: 'order',               // order, guest, user, food_menu, service, hotel_settings, wifi, invoice
+  entityId: id,                  // ID of affected record (optional)
+  description: 'Changed order to COMPLETED for John Doe (Room 101)',
+  metadata: { ... },             // Additional JSON data (optional)
+})
+```
+
+**Design**: Never awaited, never throws — silently catches errors so logging can't break the primary operation.
+
+### Where it's called (20+ call sites)
+
+| Entity | Operations Logged |
+|--------|-------------------|
+| `order` | Status changes (PENDING → ACCEPTED → IN_PROGRESS → COMPLETED) |
+| `guest` | Check-in, profile updates |
+| `user` (staff) | Account creation, deactivation, deletion, password changes |
+| `food_menu` | Create, update, delete items |
+| `service` | Create, update, delete services |
+| `invoice` | Creation, status changes (mark paid/cancelled), auto-generation |
+| `wifi` | Create, update, delete credentials |
+| `hotel_settings` | Settings updates |
+
+### API: `GET /api/activity-logs` (`app/api/activity-logs/route.ts`)
+
+Staff/Admin only. Query params:
+- `page` (default 1), `limit` (default 20) — pagination
+- `entity` — filter by entity type
+- `action` — filter by action type (CREATE, UPDATE, DELETE, STATUS_CHANGE)
+- `dateFrom`, `dateTo` — date range filter
+
+Returns `{ logs, total, page, limit, totalPages }` with user details included.
+
+### UI: `/staff/activity-log` (`app/(staff)/staff/activity-log/page.tsx`)
+
+Timeline view with:
+- Color-coded action icons (green=CREATE, blue=UPDATE, red=DELETE, orange=STATUS_CHANGE)
+- Filter by entity, action, and date range
+- Pagination with "Load More"
+- Staff member name on each entry
+- Relative timestamps ("2 hours ago")
 
 ## Important Conventions
 
@@ -513,6 +576,55 @@ Socket.io setup planned for:
   - Enhanced user engagement through animations
   - Consistent design language across all guest pages
   - Modern aesthetic matching high-quality design references
+
+### Revenue Analytics Page (February 2026)
+- **New API endpoint**: GET `/api/analytics/revenue` with query params `dateFrom`, `dateTo`, `groupBy` (day/week/month)
+  - Summary KPIs: total revenue, orders, avg order value, tax collected, pending amount, completion rate
+  - Time-series data grouped by day/week/month
+  - Revenue by order type (FOOD, ROOM_SERVICE, CUSTOM_REQUEST) with percentages
+  - Revenue by category (top 10)
+  - Top 10 items by revenue with names resolved
+  - Top 10 guests by spending
+  - Invoice status breakdown (PAID/PENDING/DRAFT/CANCELLED)
+  - Period-over-period comparison (% change from previous equivalent period)
+  - Occupancy snapshot
+- **Analytics page** (`app/(staff)/staff/analytics/page.tsx`):
+  - Date range presets (Today, 7d, 30d, This/Last Month, Quarter, Year, All Time) + custom inputs
+  - Group by selector (Day/Week/Month) for time-series granularity
+  - 6 KPI cards with comparison arrows
+  - Recharts AreaChart (revenue trend), PieChart (order type + invoice status), BarChart (categories)
+  - Top Items and Top Guests tables
+  - CSV export (native Blob + URL.createObjectURL)
+- **Sidebar**: Added Analytics nav item with `BarChart3` icon after Dashboard
+- **Recharts dark mode fix**: Use `var(--variable)` instead of `hsl(var(...))` for all chart text/tooltip colors; add `itemStyle` and `labelStyle` to Tooltip components
+
+### Separate Login Pages (February 2026)
+- **Guest login** (`app/guest-login/page.tsx`):
+  - Light theme with forest green (`#2D5A3D`) + warm gold (`#C9A96E`) on beige
+  - Feature pills (Dining, Services, WiFi, Chat)
+  - Framer Motion staggered entrance animations
+  - Reactive focus states (labels, icons, input backgrounds change on focus)
+  - "Staff member? Login here" link to `/login`
+- **Staff login** (`app/login/page.tsx`) — complete overhaul:
+  - Dark theme (`#08080a`) with lime green accents (`#a3ff57`)
+  - Animated mesh grid background (CSS `mesh-drift` animation with radial mask fade)
+  - Glassmorphic card with frosted border and inner glow
+  - Feature pills (Dashboard, Orders, Analytics, Messages)
+  - Same reactive focus states pattern
+  - "Hotel guest? Login here" link to `/guest-login`
+- **Guest auth redirects**: All guest redirects now go to `/guest-login` instead of `/login`:
+  - `app/(guest)/layout.tsx` — unauthenticated redirect
+  - `app/(guest)/guest/profile/page.tsx` — auth check redirects
+  - `components/guest/profile-actions.tsx` — logout redirect
+
+### Dashboard Order Pipeline (February 2026)
+- **Replaced pie chart** with interactive Order Pipeline on staff dashboard
+- Shows 5 workflow stages: Pending → Accepted → In Progress → Completed → Cancelled
+- Each row: status icon, label, count (colored), proportional progress bar
+- Clickable rows navigate to `/staff/orders?status=STATUS`
+- Pending row highlighted with yellow border when count > 0
+- Active orders count in subtitle
+- **Orders page** (`app/(staff)/staff/orders/page.tsx`): reads `?status=` URL param to initialize filter via `useSearchParams()`
 
 ## Known Issues
 
