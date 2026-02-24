@@ -34,13 +34,13 @@ export async function GET() {
       prisma.order.count({ where: { status: 'COMPLETED' } }),
       prisma.order.count({ where: { status: 'CANCELLED' } }),
       prisma.order.count({ where: { createdAt: { gte: today } } }),
-      prisma.order.aggregate({
-        where: { status: { not: 'CANCELLED' } },
-        _sum: { totalAmount: true },
+      prisma.invoice.aggregate({
+        where: { status: 'PAID' },
+        _sum: { total: true },
       }),
-      prisma.order.aggregate({
-        where: { status: { not: 'CANCELLED' }, createdAt: { gte: today } },
-        _sum: { totalAmount: true },
+      prisma.invoice.aggregate({
+        where: { status: 'PAID', paidAt: { gte: today } },
+        _sum: { total: true },
       }),
       prisma.guest.count({ where: { isActive: true } }),
       prisma.guest.count(),
@@ -105,8 +105,8 @@ export async function GET() {
         cancelled: cancelledCount,
       },
       revenue: {
-        total: totalRevenue._sum.totalAmount ?? 0,
-        today: todayRevenue._sum.totalAmount ?? 0,
+        total: totalRevenue._sum.total ?? 0,
+        today: todayRevenue._sum.total ?? 0,
       },
       guests: {
         active: activeGuests,
