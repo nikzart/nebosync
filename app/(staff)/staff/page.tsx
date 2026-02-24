@@ -246,11 +246,13 @@ export default function StaffDashboard() {
                   <Tooltip
                     formatter={(value: number) => [value, 'Orders']}
                     contentStyle={{
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
+                      backgroundColor: 'var(--card)',
+                      border: '1px solid var(--border)',
                       borderRadius: '0.5rem',
-                      color: 'hsl(var(--foreground))',
+                      color: 'var(--foreground)',
                     }}
+                    itemStyle={{ color: 'var(--foreground)' }}
+                    labelStyle={{ color: 'var(--muted-foreground)' }}
                   />
                   <Legend />
                 </PieChart>

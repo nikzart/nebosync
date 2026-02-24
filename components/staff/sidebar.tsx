@@ -15,7 +15,8 @@ import {
   FileText,
   UserCog,
   Activity,
-  LogOut
+  LogOut,
+  BarChart3
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -29,6 +30,7 @@ interface NavigationItem {
 
 const navigation: NavigationItem[] = [
   { name: 'Dashboard', href: '/staff', icon: LayoutDashboard },
+  { name: 'Analytics', href: '/staff/analytics', icon: BarChart3 },
   { name: 'Orders', href: '/staff/orders', icon: ShoppingCart },
   { name: 'Messages', href: '/staff/messages', icon: MessageSquare },
   { name: 'Food Menu', href: '/staff/food-menu', icon: UtensilsCrossed },
