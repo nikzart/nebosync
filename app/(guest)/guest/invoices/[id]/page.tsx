@@ -2,7 +2,7 @@
 
 import { use } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, Download } from 'lucide-react'
+import { ArrowLeft, Download, Eye } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { tapScale } from '@/lib/motion'
@@ -56,6 +56,11 @@ export default function GuestInvoicePage({ params }: { params: Promise<{ id: str
     document.body.removeChild(link)
   }
 
+  const previewInvoice = () => {
+    if (!invoice) return
+    window.open(`/api/invoices/${invoice.id}/download?preview=true`, '_blank')
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -87,14 +92,24 @@ export default function GuestInvoicePage({ params }: { params: Promise<{ id: str
             </button>
             <h1 className="text-[18px] font-semibold text-[#1C1C1C]">Invoice</h1>
           </div>
-          <motion.button
-            {...tapScale}
-            onClick={downloadInvoice}
-            className="flex items-center gap-1.5 text-[13px] font-medium text-[#2D5A3D]"
-          >
-            <Download className="w-4 h-4" />
-            Download PDF
-          </motion.button>
+          <div className="flex items-center gap-3">
+            <motion.button
+              {...tapScale}
+              onClick={previewInvoice}
+              className="flex items-center gap-1 text-[13px] font-medium text-[#6B6B6B]"
+            >
+              <Eye className="w-4 h-4" />
+              Preview
+            </motion.button>
+            <motion.button
+              {...tapScale}
+              onClick={downloadInvoice}
+              className="flex items-center gap-1 text-[13px] font-medium text-[#2D5A3D]"
+            >
+              <Download className="w-4 h-4" />
+              Download
+            </motion.button>
+          </div>
         </div>
       </header>
 

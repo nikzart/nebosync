@@ -12,6 +12,7 @@ import {
   ChevronRight,
   FileText,
   Download,
+  Eye,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -91,6 +92,12 @@ export default function StaffOrdersPage() {
     link.click()
     document.body.removeChild(link)
     toast.success('Downloading invoice...')
+  }
+
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+
+  const previewInvoice = (invoiceId: string) => {
+    setPreviewUrl(`/api/invoices/${invoiceId}/download?preview=true`)
   }
 
   const { data: orders, isLoading } = useQuery<Order[]>({
@@ -298,14 +305,25 @@ export default function StaffOrdersPage() {
                           {invoice.invoiceNumber}
                         </span>
                       </div>
-                      <Button
-                        size="sm"
-                        onClick={() => downloadInvoice(invoice.id, invoice.invoiceNumber)}
-                        className="w-full bg-green-600 hover:bg-green-700 text-white"
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        Download Invoice PDF
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => previewInvoice(invoice.id)}
+                          className="flex-1"
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
+                          Preview
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => downloadInvoice(invoice.id, invoice.invoiceNumber)}
+                          className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          Download
+                        </Button>
+                      </div>
                     </div>
                   ) : (
                     <div className="border-t pt-4 text-center text-xs text-muted-foreground">
@@ -384,6 +402,34 @@ export default function StaffOrdersPage() {
           <p className="text-muted-foreground">
             Orders will appear here when guests place them
           </p>
+        </div>
+      )}
+
+      {/* Invoice Preview Modal */}
+      {previewUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          onClick={() => setPreviewUrl(null)}
+        >
+          <div
+            className="relative w-full max-w-3xl h-[85vh] bg-card rounded-2xl overflow-hidden shadow-2xl border"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-3 border-b">
+              <span className="text-sm font-semibold">Invoice Preview</span>
+              <button
+                onClick={() => setPreviewUrl(null)}
+                className="text-muted-foreground hover:text-foreground text-xl leading-none px-2"
+              >
+                &times;
+              </button>
+            </div>
+            <iframe
+              src={previewUrl}
+              className="w-full"
+              style={{ height: 'calc(85vh - 49px)' }}
+            />
+          </div>
         </div>
       )}
     </div>

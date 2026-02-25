@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { Package, Download } from 'lucide-react'
+import { Package, Download, Eye } from 'lucide-react'
 import { toast } from 'sonner'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { cn } from '@/lib/utils'
@@ -101,6 +101,10 @@ export default function OrdersPage() {
     link.click()
     document.body.removeChild(link)
     toast.success('Downloading invoice...')
+  }
+
+  const previewInvoice = (invoiceId: string) => {
+    window.open(`/api/invoices/${invoiceId}/download?preview=true`, '_blank')
   }
 
   const handleCancelOrder = async (orderId: string) => {
@@ -215,13 +219,22 @@ export default function OrdersPage() {
                         <span className="text-[12px] text-[#6B6B6B]">
                           Invoice {invoice.invoiceNumber}
                         </span>
-                        <button
-                          onClick={() => downloadInvoice(invoice.id, invoice.invoiceNumber)}
-                          className="flex items-center gap-1.5 text-[13px] font-medium text-[#2D5A3D]"
-                        >
-                          <Download className="w-3.5 h-3.5" />
-                          Download
-                        </button>
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => previewInvoice(invoice.id)}
+                            className="flex items-center gap-1 text-[13px] font-medium text-[#6B6B6B]"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            Preview
+                          </button>
+                          <button
+                            onClick={() => downloadInvoice(invoice.id, invoice.invoiceNumber)}
+                            className="flex items-center gap-1 text-[13px] font-medium text-[#2D5A3D]"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            Download
+                          </button>
+                        </div>
                       </div>
                     ) : null
                   })()}

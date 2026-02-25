@@ -17,6 +17,7 @@ import {
   Square,
   XCircle,
   Check,
+  Eye,
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
@@ -99,6 +100,12 @@ export default function InvoicesPage() {
     } catch {
       toast.error('Failed to download invoice')
     }
+  }
+
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+
+  const previewInvoice = (invoiceId: string) => {
+    setPreviewUrl(`/api/invoices/${invoiceId}/download?preview=true`)
   }
 
   const markAsPaidMutation = useMutation({
@@ -548,6 +555,17 @@ export default function InvoicesPage() {
                                 variant="outline"
                                 onClick={(e) => {
                                   e.stopPropagation()
+                                  previewInvoice(invoice.id)
+                                }}
+                              >
+                                <Eye className="w-4 h-4 mr-1" />
+                                Preview
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={(e) => {
+                                  e.stopPropagation()
                                   downloadInvoice(invoice.id, invoice.invoiceNumber)
                                 }}
                               >
@@ -734,6 +752,34 @@ export default function InvoicesPage() {
             </p>
           </CardContent>
         </Card>
+      )}
+
+      {/* Invoice Preview Modal */}
+      {previewUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          onClick={() => setPreviewUrl(null)}
+        >
+          <div
+            className="relative w-full max-w-3xl h-[85vh] bg-card rounded-2xl overflow-hidden shadow-2xl border"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-3 border-b">
+              <span className="text-sm font-semibold">Invoice Preview</span>
+              <button
+                onClick={() => setPreviewUrl(null)}
+                className="text-muted-foreground hover:text-foreground text-xl leading-none px-2"
+              >
+                &times;
+              </button>
+            </div>
+            <iframe
+              src={previewUrl}
+              className="w-full"
+              style={{ height: 'calc(85vh - 49px)' }}
+            />
+          </div>
+        </div>
       )}
     </div>
   )

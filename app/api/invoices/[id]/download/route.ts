@@ -92,11 +92,14 @@ export async function GET(
     // Generate PDF
     const pdfBuffer = await generateInvoicePDF(invoiceData, hotelSettingsData)
 
-    // Return PDF as download
+    // Return PDF as inline preview or attachment download
+    const preview = request.nextUrl.searchParams.get('preview') === 'true'
+    const disposition = preview ? 'inline' : `attachment; filename="invoice-${invoice.invoiceNumber}.pdf"`
+
     return new NextResponse(pdfBuffer, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="invoice-${invoice.invoiceNumber}.pdf"`,
+        'Content-Disposition': disposition,
       },
     })
   } catch (error) {
