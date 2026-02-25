@@ -49,11 +49,22 @@ export async function generateInvoiceForOrder(orderId: string) {
     })
   }
 
-  // Generate unique invoice number (format: PREFIX-YYYYMMDD-XXXX)
-  const today = new Date()
-  const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '')
-  const randomNum = Math.floor(1000 + Math.random() * 9000)
-  const invoiceNumber = `${hotelSettings.invoicePrefix}-${dateStr}-${randomNum}`
+  // Generate sequential invoice number (format: PREFIX-YYYYMMDD-0001)
+  const prefix = hotelSettings.invoicePrefix
+  const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '')
+  const dayPrefix = `${prefix}-${dateStr}`
+  const lastInvoice = await prisma.invoice.findFirst({
+    where: { invoiceNumber: { startsWith: dayPrefix } },
+    orderBy: { createdAt: 'desc' },
+    select: { invoiceNumber: true },
+  })
+  let nextNum = 1
+  if (lastInvoice) {
+    const parts = lastInvoice.invoiceNumber.split('-')
+    const lastNum = parseInt(parts[parts.length - 1], 10)
+    if (!isNaN(lastNum)) nextNum = lastNum + 1
+  }
+  const invoiceNumber = `${dayPrefix}-${String(nextNum).padStart(4, '0')}`
 
   // Calculate amounts using tax rate from settings
   const subtotal = order.totalAmount
